@@ -8,3 +8,5 @@
 > ###### `epoll 接收到事件后将任务加入线程池，由其余线程做处理`
 > ###### `虽包含了协程，但使用协程时仍按回调使用，因未想出可以更高效的使用逻辑`
 > ###### `配置统一由config/config.yaml来管理，由Config加载，支持字符串转int, long, uint, ulong, bool, const char *; 未使用boost::lexical_cast`
+
+> ###### 目前可以编译生成httpd，也可以获取到静态html，登录等一些基本逻辑暂未实现
