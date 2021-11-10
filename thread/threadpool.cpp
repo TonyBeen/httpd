@@ -94,6 +94,8 @@ bool ThreadPool::start()
             ++successed;
         }
     }
+    mAliveNum = successed;
+
     for (const auto &it : mWorkerThreads) { // start 之后数组内不能存在空指针
         LOG_ASSERT(it != nullptr, "");
     }
