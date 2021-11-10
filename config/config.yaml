@@ -1,0 +1,18 @@
+log:
+  level: debug
+  target: stdout|fileout
+  sync: true
+tcp:
+  port: 80
+  ip: 172.25.12.215
+threadpool:
+  min_thread_num: 4
+  max_thread_num: 8
+mysql:
+  user: mysql
+  password: 123456
+  database: userdb
+html:
+  root: /home/hsz/VScode/www/html/
+fiber:
+  stack_size: 1048576 # 1024 * 1024
