@@ -27,7 +27,8 @@ void thread_addWork(ThreadPool *th)
 {
     int count = 0;
     while (count < 20) {
-        th->addWork(std::bind(func, 0));
+        Fiber::sp fiberPtr(new Fiber(std::bind(func, 0)));
+        th->addWork(fiberPtr);
         msleep(200);
         ++count;
     }
