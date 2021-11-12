@@ -121,10 +121,8 @@ int ThreadPool::manager()
 {
     LOGD("manager() start");
     while (ShouldStop() == false) {
-        mPoolMutex.lock();
         uint32_t queueSize = QueueSize();
         int busyNum = mBusyNum.load();
-        mPoolMutex.unlock();
         int aliveNum = mAliveNum.load();
 
         LOGD("%s() queueSize = %d, busyNum = %d, aliveNum = %d, mMinThreadNum = %d, mMaxThreadNum = %d", 
@@ -132,6 +130,9 @@ int ThreadPool::manager()
 
         // 任务过多，添加线程
         if ((queueSize / 4 > aliveNum) && (aliveNum < mMaxThreadNum)) {
+            mPoolMutex.lock();
+            mExitNum = 0;
+            mPoolMutex.unlock();
             for (int i = 0, count = 0; i < mMaxThreadNum && THREAD_NUM_ONCE > count; ++i) {
                 if (mWorkerThreads[i]->ThreadStatus() != Thread::THREAD_RUNNING) {
                     mWorkerThreads[i]->reset(std::bind(&ThreadPool::worker, this));
