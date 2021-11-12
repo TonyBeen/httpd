@@ -83,7 +83,7 @@ private:
     uint32_t                    mMinThreadNum;
     uint32_t                    mMaxThreadNum;
     std::atomic<uint32_t>       mBusyNum;
-    std::atomic<uint64_t>       mAliveNum;
+    std::atomic<uint32_t>       mAliveNum;
     std::atomic<uint8_t>        mExitNum;
     std::atomic<bool>           mShouldStop;
 
