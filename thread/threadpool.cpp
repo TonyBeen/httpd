@@ -139,10 +139,7 @@ int ThreadPool::manager()
                     mWorkerThreads[i]->run();
                     LOGI("%s() Thread %s %d is running", __func__, mWorkerThreads[i]->getName().c_str(),
                         mWorkerThreads[i]->getKernalTid());
-                    {
-                        AutoLock<Mutex> lock(mPoolMutex);
-                        mAliveNum++;
-                    }
+                    mAliveNum++;
                     ++count;
                 }
             }
