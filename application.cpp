@@ -103,7 +103,7 @@ int Application::run()
 void Signalcatch(int sig)
 {
     LOGI("catch signal %d", sig);
-    if (sig == SIGABRT) {
+    if (sig == SIGABRT || sig == SIGSEGV) {
         // 产生堆栈信息;
         LOG_ASSERT(false, "");
     }
@@ -113,6 +113,7 @@ int Application::main()
 {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGABRT, Signalcatch);
+    signal(SIGSEGV, Signalcatch);
     Address addr(gLocalAddress, gPort);
     Epoll epoll(addr);
     while (true) {
