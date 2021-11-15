@@ -21,7 +21,7 @@ namespace Jarvis {
 static String8 root;
 static uint64_t gRestartCount = 0;
 static String8 gLocalAddress = getLocalAddress()[0];
-static uint16_t gPort = Config::Lookup<uint32_t>("tcp.port", 80);
+static uint16_t gPort;
 
 Application::Application() :
     mRunAsDaemons(false)
@@ -80,6 +80,8 @@ int Application::init(int argc, char **argv)
     if (stdOut == false) {
         delOutputNode(LogWrite::STDOUT);
     }
+
+    gPort = Config::Lookup<uint32_t>("tcp.port", 80);
 
     LOGI("load config file over");
     LOGI("log level = %s; log target = %s; log sync = %s",
