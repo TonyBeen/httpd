@@ -10,7 +10,8 @@
 #include <utils/Errors.h>
 #include <utils/utils.h>
 
-#define LOG_TAG __FILE__
+#define LOG_TAG "mysql"
+
 static const char *INSERT_SQL_FMT = "insert into %s value(%s);";
 static const char *SELECT_SQL_FMT = "select %s from %s where(%s);";
 static const char *UPDATE_SQL_FMT = "update %s set %s where(%s);";
@@ -85,7 +86,7 @@ int MySqlConn::ConnectSql(const char *sqlUser, const char *passwd, const char *d
  * @param table {const char *} 数据库表名
  * @param value {const char *} 字段名，为空则是表中所有字段, 前后禁止加括号。标准格式：v1, v2, v3
  * @param cond  {const char *} 查询条件，where 后面的值
- * @return int
+ * @return 成功返回OK，失败返回负值
  */
 int  MySqlConn::SelectSql(const char *table, const char *value, const char *cond)
 {

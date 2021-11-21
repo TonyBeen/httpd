@@ -8,6 +8,7 @@ INCLUDE := 	-I/home/hsz/VScode/httpd/
 STATIC_LIB := /usr/local/lib/libyaml-cpp.a # /usr/local/lib/libthreadpool.a
 SHARED_LIB := -lutils -llog -lsqlutils -lpthread
 
+SQL_DIR = $(CURRENT_PATH)/sql
 NET_DIR = $(CURRENT_PATH)/net
 HTTP_DIR = $(CURRENT_PATH)/http
 THREAD_DIR = $(CURRENT_PATH)/thread
@@ -23,6 +24,7 @@ testaddress_src := $(TEST_DIR)/test_address.cc $(NET_DIR)/address.cpp
 testhttp_src := $(TEST_DIR)/test_http.cc $(HTTP_DIR)/http.cpp
 testthread_src := $(TEST_DIR)/test_thread.cc $(THREAD_DIR)/thread.cpp
 testthreadpool_src := $(TEST_DIR)/test_threadpool.cc $(THREAD_DIR)/thread.cpp $(THREAD_DIR)/threadpool.cpp fiber.cpp config.cpp
+testmysqlpool_src := $(TEST_DIR)/test_mysqlpool.cc $(SQL_DIR)/mysql.cpp $(SQL_DIR)/mysqlpool.cpp
 
 test_all :
 	make $(TEST_DIR)/testconfig
@@ -33,6 +35,7 @@ test_all :
 	make $(TEST_DIR)/testhttp
 	make $(TEST_DIR)/testthread
 	make $(TEST_DIR)/testthreadpool
+	make $(TEST_DIR)/testmysqlpool
 
 $(TEST_DIR)/testconfig : $(testconfig_src)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
@@ -49,6 +52,8 @@ $(TEST_DIR)/testhttp : $(testhttp_src)
 $(TEST_DIR)/testthread : $(testthread_src)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
 $(TEST_DIR)/testthreadpool : $(testthreadpool_src)
+	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
+$(TEST_DIR)/testmysqlpool : $(testmysqlpool_src)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
 
 .PHONY: test_all clean_test
