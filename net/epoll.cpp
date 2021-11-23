@@ -62,15 +62,10 @@ Epoll::~Epoll()
     if (mEpollFd > 0) {
         close(mEpollFd);
     }
-    if (mServerSocket != nullptr) {
-        delete mServerSocket;
-    }
-    if (mWorkerThreadPool != nullptr) {
-        delete mWorkerThreadPool;
-    }
-    if (mMysqlDb) {
-        delete mMysqlDb;
-    }
+
+    delete mServerSocket;
+    delete mWorkerThreadPool;
+    delete mMysqlDb;
 }
 
 void Epoll::LoadConfig()
