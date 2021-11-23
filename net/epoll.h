@@ -46,7 +46,7 @@ private:
     Socket *            mServerSocket;
     epoll_event         mEvent;
     ThreadPool *        mWorkerThreadPool;  // 处理http请求工作线程
-    MySqlConn *         mMysqlDb;           
+    MySqlConn *         mMysqlDb;
 };
 
 
