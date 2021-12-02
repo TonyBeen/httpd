@@ -43,7 +43,7 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
     int32_t prevIndex = index + 2;
     while ((index = httpRequest.find("\r\n", prevIndex)) > 0) {
         String8 line = String8(httpRequest.c_str() + prevIndex, index - prevIndex);
-        LOGD("one line of http request: %s", line.c_str());
+        // LOGD("one line of http request: %s", line.c_str());
         int32_t colonPos = line.find(':');
         if (colonPos > 0) {
             String8 key(line.c_str(), colonPos);
@@ -82,7 +82,7 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
     return mHttpRequestMap;
 }
 
-// username=haoshaozhe&password=123
+// username=eular&password=123
 bool HttpParser::ParserRequestData()
 {
     if (mRequestData.size() == 0) {
@@ -96,7 +96,7 @@ bool HttpParser::ParserRequestData()
         String8 keyValue = String8(requestData.c_str() + prevPos, pos);
         LOGD("%s() KeyValue = \"%s\"", __func__, keyValue.c_str());
         int32_t equalPos = keyValue.find('=');
-        if (equalPos > 0) { // username=haoshaozhe
+        if (equalPos > 0) { // username=eular
             mRequestDataMap[String8(keyValue.c_str(), equalPos)] = String8(keyValue.c_str() + equalPos + 1);
         }
         prevPos = pos + 1;
@@ -112,12 +112,7 @@ bool HttpParser::ParserRequestData()
         LOGD("%s() [\"%s\",\"%s\"]", __func__, it.first.c_str(), it.second.c_str());
     }
     return true;
-} 
-
-static std::map<String8, String8> gDefaultReponse = {
-    {"Server", "Jarvis/Httpd v1.0"},
-    {"Connection", "keep-alive"}
-};
+}
 
 bool HttpParser::KeepAlive() const
 {
@@ -133,35 +128,6 @@ bool HttpParser::KeepAlive() const
         return false;
     }
     return true;
-}
-
-String8 HttpResponse::CreateHttpReponseHeader(HttpVersion ver, HttpStatus status)
-{
-    this->mVer = ver;
-    this->mStatus = status;
-    String8 ret;
-    ret.appendFormat("%s %d %s\r\n",
-        HttpVersion2String(ver).c_str(), (int)status, HttpStatus2String(status).c_str());
-    return ret;
-}
-
-String8 HttpResponse::CreateHttpReponseBody(const std::map<String8, String8> &body)
-{
-    String8 ret;
-    for (const auto &it : body) {
-        ret.appendFormat("%s: %s\r\n", it.first.c_str(), it.second.c_str());
-    }
-    ret.append("\r\n");
-    return ret;
-}
-
-String8 HttpResponse::GetDefaultResponseByKey(const String8 &key)
-{
-    auto it = gDefaultReponse.find(key);
-    if (it != gDefaultReponse.end()) {
-        return it->second;
-    }
-    return key;
 }
 
 } // namespace Jarvis

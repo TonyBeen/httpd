@@ -8,7 +8,7 @@
 #include "application.h"
 #include "application.h"
 #include "config.h"
-#include "net/epoll.h"
+#include "net/socket.h"
 #include <log/log.h>
 #include <unistd.h>
 #include <iostream>
@@ -116,10 +116,10 @@ int Application::main()
     signal(SIGPIPE, SIG_IGN);
     signal(SIGABRT, Signalcatch);
     signal(SIGSEGV, Signalcatch);
-    Address addr(gLocalAddress, gPort);
-    Epoll epoll(addr);
+
+    TcpServer tcpServer(gPort, gLocalAddress);
     while (true) {
-        int status = epoll.main_loop(&epoll);
+        int status = tcpServer.accept_loop();
         if (mRunAsDaemons) {
             break;
         }

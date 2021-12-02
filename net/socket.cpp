@@ -6,6 +6,7 @@
  ************************************************************************/
 
 #include "socket.h"
+#include "config.h"
 #include <log/log.h>
 #include <utils/Errors.h>
 #include <utils/exception.h>
@@ -16,6 +17,8 @@
 #define LISTEN_SOCKET_NUM 512
 
 namespace Jarvis {
+
+static uint32_t gSizeOfEpollVec  = 0;
 
 static std::atomic<uint32_t> gCountUdpFd = {3};
 Socket::Socket() // : Socket(TCP, IPv4, 80, "")
@@ -70,7 +73,7 @@ int Socket::accept(sockaddr_in *addr)
     socklen_t addrLen;
     if (mProtocolType == TCP) {
         clientFd = ::accept(mSockFd, (sockaddr *)addr, &addrLen);
-        if (clientFd > 0) {
+        if (clientFd > 0 && addr) {
             mClientFdMap[clientFd] = *addr;
         } else {
             LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
@@ -256,5 +259,85 @@ void Socket::destroy()
     mValid = false;
 }
 
-} // namespace Jarvis
+TcpServer::TcpServer(uint16_t port, const String8 &IP) :
+    Socket(TCP, IPv4, port, IP)
+{
+    gSizeOfEpollVec = Config::Lookup<uint32_t>("EpollVec.size", 5);
 
+    for (int i = 0; i < gSizeOfEpollVec; ++i) {
+        std::shared_ptr<Epoll> epollTmp(new Epoll());
+        LOG_ASSERT(epollTmp != nullptr, "");
+        std::shared_ptr<Thread> threadTmp(new Thread(std::bind(&Epoll::main_loop, epollTmp.get()), "epoll thread"));
+        LOG_ASSERT(threadTmp != nullptr, "");
+        mEpollProcMap[threadTmp] = epollTmp;
+        threadTmp->run();
+    }
+}
+
+TcpServer::~TcpServer()
+{
+
+}
+
+int TcpServer::accept(sockaddr_in *addr)
+{
+    socklen_t addrLen;
+    sockaddr_in tmp;
+
+    int clientFd = ::accept(mSockFd, (sockaddr *)&tmp, &addrLen);
+    if (clientFd > 0) {
+        // add to epoll
+        Epoll *epoll = mEpollProcMap.begin()->second.get();
+        int min = mEpollProcMap.begin()->second->getClientCount();
+        for (auto &it : mEpollProcMap) {
+            if (min > it.second->getClientCount()) {
+                min = it.second->getClientCount();
+                epoll = it.second.get();
+            }
+        }
+        LOGI("accept client %d, [%s:%u]", clientFd, inet_ntoa(tmp.sin_addr), ntohs(tmp.sin_port));
+        LOG_ASSERT(epoll, "");
+        epoll->addEvent(clientFd, tmp);
+    } else {
+        LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
+    }
+
+    if (addr) *addr = tmp;
+    return clientFd;
+}
+
+int TcpServer::accept_loop()
+{
+    epoll_event ev;
+    int epollfd = epoll_create(2);
+    if (epollfd < 0) {
+        LOGE("%s() epoll_create error. %d: %s", __FUNCTION__, errno, strerror(errno));
+        return Thread::THREAD_EXIT;
+    }
+    ev.data.fd = mSockFd;
+    ev.events = EPOLLIN | EPOLLET;
+    epoll_ctl(epollfd, EPOLL_CTL_ADD, mSockFd, &ev);
+    epoll_event events[2];
+
+    while (true) {
+        int nRet = epoll_wait(epollfd, events, 2, -1);
+        if (nRet > 0) {
+            for (int i = 0; i < nRet; ++i) {
+                auto &event = events[i];
+                if (event.data.fd = mSockFd) {
+                    int fd = this->accept(nullptr);
+                }
+            }
+        } else {
+            if (errno != EAGAIN) {
+                LOGE("%s() epoll_wait error. %d: %s", __FUNCTION__, errno, strerror(errno));
+                break;
+            }
+        }
+    }
+
+    LOGD("%s() end", __func__);
+    return Thread::THREAD_WAITING;
+}
+
+} // namespace Jarvis

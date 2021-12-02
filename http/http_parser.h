@@ -43,20 +43,6 @@ private:
     HttpRquestMap   mRequestDataMap;    // 解析出的post或get键值对
 };
 
-class HttpResponse
-{
-public:
-    HttpResponse() {}
-    ~HttpResponse() {}
-
-    String8 CreateHttpReponseHeader(HttpVersion ver, HttpStatus status);
-    String8 CreateHttpReponseBody(const std::map<String8, String8> &body);
-    static String8 GetDefaultResponseByKey(const String8 &key);
-private:
-    HttpVersion     mVer;
-    HttpStatus      mStatus;
-};
-
 } // namespace Jarvis
 
 #endif // __HTTP_PASER_H__

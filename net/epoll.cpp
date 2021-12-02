@@ -14,10 +14,11 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <netinet/tcp.h>
 
 #define LOG_TAG "epoll"
 
-#define EPOLL_EVENT_SIZE 1024
+#define EPOLL_EVENT_SIZE 2048
 #define READ_BUFSIZE     1024
 #define WRITE_BUFSIZE    1024
 
@@ -29,49 +30,81 @@ static String8  gMysqlUser;
 static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 
-Epoll::Epoll(const Address &addr) :
+Epoll::Epoll() :
     mEpollFd(0)
 {
     LoadConfig();
-    try {
-        mWorkerThreadPool = new ThreadPool(gMinThreadNum, gMaxThreadNum);
-        LOG_ASSERT(mWorkerThreadPool != nullptr, "%s %d %s()", __FILE__, __LINE__, __func__);
-    } catch (const Exception &e) {
-        LOGE("%s() %s", __func__, e.what());
-        exit(0);
-    }
-    
-    mServerSocket = new Socket(Socket::TCP, Socket::IPv4, addr.mPort, addr.mIp);
-    LOG_ASSERT(mServerSocket != nullptr, "");
-
+    // try {
+    //     mWorkerThreadPool = new ThreadPool(gMinThreadNum, gMaxThreadNum);
+    //     LOG_ASSERT(mWorkerThreadPool != nullptr, "%s %d %s()", __FILE__, __LINE__, __func__);
+    // } catch (const Exception &e) {
+    //     LOGE("%s() %s", __func__, e.what());
+    //     exit(0);
+    // }
+    mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
-        mWorkerThreadPool->start();
+        // mWorkerThreadPool->start();
         mMysqlDb = new MySqlConn(gMysqlUser.c_str(), gMysqlPasswd.c_str(), gDatabaseName.c_str());
         LOG_ASSERT(mMysqlDb != nullptr, "%s %d %s()", __FILE__, __LINE__, __func__);
         LOGI("epoll is working");
     }
 }
 
-Epoll::Epoll(const Address::sp &addr) :
-    Epoll(addr != nullptr ? *addr.get() : Address(getLocalAddress()[0] , 80))
-{
-}
-
 Epoll::~Epoll()
 {
-    if (mEpollFd > 0) {
-        close(mEpollFd);
+    ::close(mEpollFd); // epoll_wait状态直接关闭会导致什么问题?
+    for (auto &it : mClientMap) {
+        ::close(it.first);
+    }
+    delete mMysqlDb;
+}
+
+bool Epoll::addEvent(int fd, const sockaddr_in &addr)
+{
+    AutoLock<Mutex> lock(mEpollMutex);
+    const auto &it = mClientMap.find(fd);
+    if (it != mClientMap.end()) {
+        LOGW("%s() socket fd %d already exists", __FUNCTION__, fd);
     }
 
-    delete mServerSocket;
-    delete mWorkerThreadPool;
-    delete mMysqlDb;
+    mClientMap[fd] = addr;
+    int flags = fcntl(fd, F_GETFL, 0);
+    fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+    int keepAlive = 1;      // 开启keepalive属性
+    int keepIdle = 60;      // 如该连接在60秒内没有任何数据往来,则进行探测
+    int keepInterval = 5;   // 探测时发包的时间间隔为5秒
+    int keepCount = 3;      // 探测尝试的次数.如果第1次探测包就收到响应了,则后2次的不再发.
+    setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &keepAlive, sizeof(keepAlive));
+    setsockopt(fd, SOL_TCP, TCP_KEEPIDLE,&keepIdle, sizeof(keepIdle));
+    setsockopt(fd, SOL_TCP, TCP_KEEPINTVL, &keepInterval, sizeof(keepInterval));
+    setsockopt(fd, SOL_TCP, TCP_KEEPCNT, &keepCount, sizeof(keepCount));
+    epoll_event ev;
+    ev.data.fd = fd;
+    ev.events = EPOLLET | EPOLLIN;
+    int ret = epoll_ctl(mEpollFd, EPOLL_CTL_ADD, fd, &ev);
+    if (ret < 0) {
+        if (errno == EEXIST) {
+            epoll_ctl(mEpollFd, EPOLL_CTL_MOD, fd, &ev);
+        } else {
+            LOGE("%s() epoll_ctl error. errno %d, %s", __func__, errno, strerror(errno));
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void Epoll::delEvent(int fd)
+{
+    AutoLock<Mutex> lock(mEpollMutex);
+    mClientMap.erase(fd);
+    epoll_ctl(mEpollFd, EPOLL_CTL_DEL, fd, nullptr);
 }
 
 void Epoll::LoadConfig()
 {
-    gMinThreadNum = Config::Lookup<uint32_t>("threadpool.min_thread_num", 4);
-    gMaxThreadNum = Config::Lookup<uint32_t>("threadpool.max_thread_num", 8);
+    // gMinThreadNum = Config::Lookup<uint32_t>("threadpool.min_thread_num", 4);
+    // gMaxThreadNum = Config::Lookup<uint32_t>("threadpool.max_thread_num", 8);
     root = Config::Lookup<const char *>("html.root", "/home/hsz/VScode/www/html/");
     gMysqlUser = Config::Lookup<const char *>("mysql.user", "mysql");
     gMysqlPasswd = Config::Lookup<const char *>("mysql.password", "123456");
@@ -89,62 +122,52 @@ bool Epoll::Reinit()
         }
     }
 
-    if (mServerSocket->mValid) {
-        mEvent.data.fd = mServerSocket->mSockFd;
-        mEvent.events  = EPOLLIN | EPOLLET;
-        int nRetCode = epoll_ctl(mEpollFd, EPOLL_CTL_ADD, mServerSocket->mSockFd, &mEvent);
-        if (nRetCode && errno != EEXIST) {
-            LOGE("%s:%s() epoll_ctl error. errno = %d, str: %s",
-                __FILE__, __func__, errno, strerror(errno));
-            return false;
-        }
-    } else {
-        return false;
-    }
-
     return true;
 }
 
-int Epoll::main_loop(void *arg)
+int Epoll::main_loop()
 {
-    Epoll *epoll = static_cast<Epoll *>(arg);
+    LOGD("%s()", __FUNCTION__);
     sockaddr_in clientAddr;
     socklen_t addrLen;
-    if (epoll->mEpollFd <= 0) {
-        LOG_ASSERT(epoll->Reinit(), "epoll fd is invalid");
+    if (mEpollFd <= 0) {
+        LOG_ASSERT(Reinit(), "epoll fd is invalid");
+        mMysqlDb = new MySqlConn(gMysqlUser.c_str(), gMysqlPasswd.c_str(), gDatabaseName.c_str());
+        LOG_ASSERT(mMysqlDb != nullptr, "%s %d %s()", __FILE__, __LINE__, __func__);
     }
     epoll_event *eventAll = new epoll_event[EPOLL_EVENT_SIZE];
     LOG_ASSERT(eventAll, "new epoll_event failed");
-    std::shared_ptr<epoll_event> eventTmp(eventAll, [](epoll_event *ptr) {  // 作用，当循环退出时不用在手动释放内存
+    std::shared_ptr<epoll_event> eventTmp(eventAll, [](const epoll_event *ptr) {  // 当循环退出时不用在手动释放内存
         if (ptr) {
             delete []ptr;
         }
     });
 
     while (true) {
-        int nRet = epoll_wait(epoll->mEpollFd, eventAll, EPOLL_EVENT_SIZE, -1);
+        int nRet = epoll_wait(mEpollFd, eventAll, EPOLL_EVENT_SIZE, -1);
         if (nRet < 0 && errno != EAGAIN) {
             LOGE("epoll_wait error. errno = %d, str: %s", errno, strerror(errno));
             break;
         }
         LOGI("epoll_wait events = %d", nRet);
         for (int i = 0; i < nRet; ++i) {
-            epoll_event &event = eventAll[i];
+            const epoll_event &event = eventAll[i];
             int cfd = event.data.fd;
-            if (event.data.fd == epoll->mServerSocket->mSockFd) {  // accept;
-                epoll->AcceptEvent();
-            }
+
             if (event.events & (EPOLLHUP | EPOLLRDHUP)) {  // 对端关闭连接
-                LOGI("client %d shut down", event.data.fd);
-                epoll_ctl(epoll->mEpollFd, EPOLL_CTL_DEL, event.data.fd, nullptr);
-                epoll->mServerSocket->close(event.data.fd);
+                LOGI("EPOLLHUP | EPOLLRDHUP event");
+                const auto &it = mClientMap.find(cfd);
+                LOG_ASSERT(it != mClientMap.end(), "");
+                LOGI("main_loop() client %d [%s:%u] shutdown", cfd, inet_ntoa(it->second.sin_addr), ntohs(it->second.sin_port));
+                delEvent(cfd);
+                ::close(cfd);
+                continue;
             }
-            if ((event.events & EPOLLIN) && (cfd != mServerSocket->mSockFd)) {   // 读事件
-                LOGD("read event addWork");
-                epoll->mWorkerThreadPool->addWork(std::bind(&Epoll::ReadEventProcess, epoll, cfd));
+            if (event.events & EPOLLIN) {   // 读事件
+                ReadEventProcess(cfd);
             }
             if (event.events & EPOLLOUT) {  // 写事件
-                LOGI("%s:%d %s() EPOLLOUT", __FILE__, __LINE__, __func__);
+                LOGI("%s:%d %s() EPOLLOUT write event", __FILE__, __LINE__, __func__);
             }
         }
     }
@@ -155,24 +178,31 @@ void Epoll::ReadEventProcess(int fd)
 {
     LOGI("%s()", __func__);
     LOG_ASSERT(fd > 0, "%s:%d %s()", __FILE__, __LINE__, __func__);
-    if (mServerSocket->mClientFdMap.find(fd) == mServerSocket->mClientFdMap.end()) {
-        LOGD("%s() client fd %d is shut down", __func__, fd);
-        return; // fd已关闭
-    }
+
     char readBuf[READ_BUFSIZE] = {0};
     int readSize = READ_BUFSIZE;
     ByteBuffer buffer;
     while (true) {
         readSize = ::read(fd, readBuf, READ_BUFSIZE);
-        if (readSize <= 0) {
+        if (readSize < 0) {
             if (errno != EAGAIN && errno != 0) {
                 LOGE("%s() read socket %d return %d. errcode %d, %s", 
                     __func__, fd, readSize, errno, strerror(errno));
                 return;
             }
             break;
+        } else if (readSize == 0) {
+            auto it = mClientMap.find(fd);
+            if (it == mClientMap.end()) {
+                return;
+            }
+            LOGI("ReadEventProcess() close client %d, [%s:%u]", fd, inet_ntoa(it->second.sin_addr), ntohs(it->second.sin_port));
+            delEvent(fd);
+            ::close(fd);
+            return;
         }
         buffer.append(readBuf, readSize);
+        memset(readBuf, 0, READ_BUFSIZE);
     }
     if (buffer.size() == 0) {
         return;
@@ -183,25 +213,26 @@ void Epoll::ReadEventProcess(int fd)
     HttpVersion version = parser.getVersion();
     String8 url = parser.getUrl();
     static const String8 &defaultHtml = "index.html";
+    String8 filePath;       // 要发送的文件及路径
 
-    HttpResponse response;
+    HttpResponse response(fd);
     std::map<String8, String8> body;
 
-    body.insert(std::make_pair("Server", HttpResponse::GetDefaultResponseByKey("Server")));
-    body.insert(std::make_pair("Connection", HttpResponse::GetDefaultResponseByKey("Connection")));
+    response.addToResBody("Server", HttpResponse::GetDefaultResponseByKey("Server"));
+    response.addToResBody("Connection", HttpResponse::GetDefaultResponseByKey("Connection"));
 
     switch (method) {
     case HttpMethod::GET:
         if (url == "/login") {
-            ProcessLogin(url, parser);
+            ProcessLogin(url, parser, response);
         }
 
         if (url == "/") {
-            body.insert(std::make_pair("Content-Type", "text/html; charset=utf-8"));
-            body.insert(std::make_pair("Content-Length", String8::format("%d", GetFileLength(root + defaultHtml))));
+            response.addToResBody("Content-Type", "text/html; charset=utf-8");
+            response.addToResBody("Content-Length", String8::format("%d", GetFileLength(root + defaultHtml)));
 
             String8 resHeader = response.CreateHttpReponseHeader(version, HttpStatus::OK);
-            String8 resBody = response.CreateHttpReponseBody(body);
+            String8 resBody = response.CreateHttpReponseBody();
             SendToClient(fd, resHeader + resBody, root + defaultHtml);
             break;
         }
@@ -215,7 +246,7 @@ void Epoll::ReadEventProcess(int fd)
             body.insert(std::make_pair("Content-Type", String8::format("%s", GetContentTypeByFileExten(fileExten).c_str())));
             body.insert(std::make_pair("Content-Length", String8::format("%d", GetFileLength(root + url))));
             String8 resHeader = response.CreateHttpReponseHeader(version, HttpStatus::OK);
-            String8 resBody = response.CreateHttpReponseBody(body);
+            String8 resBody = response.CreateHttpReponseBody();
             SendToClient(fd, resHeader + resBody, root + url);
         }
 
@@ -225,28 +256,60 @@ void Epoll::ReadEventProcess(int fd)
     default:
         break;
     }
+    
     LOGD("%s() end", __func__);
 }
 
-bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser)
+bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &response)
 {
-    const HttpParser::HttpRquestMap &reqMap = parser.getRequestMap(); 
-    if (reqMap.size() == 0) {
-        url = "/";
-        return false;
-    } 
-
+    const HttpParser::HttpRquestMap &reqMap = parser.getRequestMap();
     auto it = reqMap.find("username");
-    if (it == reqMap.end()) {
-        return false;
+    String8 username, password, cond;
+    int ret;
+    MySqlRes::sp res;
+
+    if (reqMap.size() == 0 || it == reqMap.end()) {
+        goto end;
     }
-    String8 username = it->second;
+    username = it->second;
     it = reqMap.find("password");
     if (it == reqMap.end()) {
-        return false;
+        goto end;
     }
-    String8 password = it->second;
+    password = it->second;
+
+    cond = String8::format("user_name = '%s' and user_password = '%s'", username.c_str(), password.c_str());
+    ret = mMysqlDb->SelectSql("userinfo", "user_name, user_id, user_password", cond.c_str());
+    if (ret != OK) {
+        LOGE("%s() select sql error. cond: [%s] %d %s", __func__,
+            cond.c_str(), mMysqlDb->getErrno(), mMysqlDb->getErrorStr());
+        goto end;
+    }
     
+    res = mMysqlDb->getSqlRes();
+    if (res->getDataCount() == 1) { // 防止sql注入
+        // 登录成功
+        response.setFilePath(root + "login.html");
+        response.setHttpStatus(HttpStatus::OK);
+    }
+
+end:
+    if (parser.getRequestMap().find("if-modified-since") != parser.getRequestMap().end()) {
+        response.setHttpStatus(HttpStatus::NOT_MODIFIED);
+        static struct timespec t = {0, 0};
+        if (t.tv_sec == 0) {
+            clock_gettime(CLOCK_REALTIME, &t);
+        }
+        static const String8 &time = String8::format("%ld", t.tv_sec);
+        response.addToResBody("Last-Modified", time.c_str());
+        response.addToResBody("Cache-Control", "public, max-age=0");
+        response.lock();
+    } else {
+        response.setHttpStatus(HttpStatus::OK);
+        url = "/";
+    }
+    
+    return false;
 }
 
 void Epoll::SendToClient(int fd, const String8 &responseHeader, const String8 &filePath)
@@ -328,33 +391,34 @@ void Epoll::Send404(int fd)
     }
 }
 
-void Epoll::AcceptEvent()
+int Epoll::ReadHttpHeader(int fd, ByteBuffer &buf)
 {
-    LOGI("%s()", __func__);
-    static uint8_t accept_once = 1;
-    uint8_t i = 0;
-    while (i < accept_once) {      // 持续接收
-        if (mServerSocket->mClientFdMap.size() == EPOLL_EVENT_SIZE - 1) {
-            LOGE("epoll capacity has reached its limit");
-            return;
-        }
-        sockaddr_in clientAddr;
-        int clientSock = mServerSocket->accept(&clientAddr);
-        if (clientSock > 0) {
-            LOGD("%s() accept client %d: [%s:%d]", __func__, clientSock,
-                inet_ntoa(clientAddr.sin_addr), ntohs(clientAddr.sin_port));
-            epoll_event eventNew;
-            int flags = fcntl(clientSock, F_GETFL, 0);
-            fcntl(clientSock, F_SETFL, flags | O_NONBLOCK);
-            eventNew.data.fd = clientSock;
-            eventNew.events = EPOLLIN | EPOLLET;
-            epoll_ctl(mEpollFd, EPOLL_CTL_ADD, clientSock, &eventNew);
-        } else if (clientSock <= 0) {
-            LOGW("accept error: errno %d, errstr: %s", errno, strerror(errno));
+    int ret = 0;
+    char tmp[READ_BUFSIZE] = {0};
+
+    while (1) {
+        ret = recv(fd, tmp, READ_BUFSIZE, MSG_PEEK);
+        if (ret <= 0) {
+            if (errno != EAGAIN && errno != 0) {
+                LOGE("%s() read socket %d return %d. errcode %d, %s", __func__, fd, ret, errno, strerror(errno));
+                return 0;
+            }
             break;
         }
-        ++i;
+        int32_t index = String8::kmp_strstr(tmp, "\r\n\r\n");
+        if (index < 0) {
+            buf.append(tmp, ret);
+            ret = recv(fd, tmp, READ_BUFSIZE, 0);
+        } else {
+            memset(tmp, 0, READ_BUFSIZE);
+            ret = recv(fd, tmp, index + 4, 0);
+            buf.append(tmp, ret);
+            break;
+        }
+        memset(tmp, 0, READ_BUFSIZE);
     }
+
+    return buf.size();
 }
 
 } // namespace Jarvis

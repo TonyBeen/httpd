@@ -38,6 +38,7 @@ MySqlConn::MySqlConn(const char *sqlUser, const char *passwd, const char *db,
         LOGE("mysql_real_connect error: %s", mysql_error(mSqlHandle));
         return;
     }
+    LOGD("mysql connect success");
     mSqlInit = true;
 }
 
@@ -82,11 +83,11 @@ int MySqlConn::ConnectSql(const char *sqlUser, const char *passwd, const char *d
 }
 
 /**
- * @description: 
+ * @description: mysql查询语句
  * @param table {const char *} 数据库表名
  * @param value {const char *} 字段名，为空则是表中所有字段, 前后禁止加括号。标准格式：v1, v2, v3
  * @param cond  {const char *} 查询条件，where 后面的值
- * @return 成功返回OK，失败返回负值
+ * @return  成功返回OK，失败返回负值
  */
 int  MySqlConn::SelectSql(const char *table, const char *value, const char *cond)
 {
@@ -299,9 +300,9 @@ bool MySqlConn::KeepFieldByQuery(const char *table)
     MYSQL_RES *sqlRes = nullptr;
     std::shared_ptr<MYSQL_RES> resSP;
     if (mysql_query(mSqlHandle, sqlBuf)) {
-    LOGE("%s() mysql_query \"%s\" error. [errno: %u, errmsg: %s]",
-        __func__, sqlBuf, mysql_errno(mSqlHandle), mysql_error(mSqlHandle));
-    return false;
+        LOGE("%s() mysql_query \"%s\" error. [errno: %u, errmsg: %s]",
+            __func__, sqlBuf, mysql_errno(mSqlHandle), mysql_error(mSqlHandle));
+        return false;
     }
     sqlRes = mysql_store_result(mSqlHandle);
     if (sqlRes == nullptr) {
@@ -321,7 +322,7 @@ bool MySqlConn::KeepFieldByQuery(const char *table)
     }
 
     for (auto it : mFieldMap) {
-        LOGI("[%d, %s]", it.first, it.second.c_str());
+        LOGD("[%d, %s]", it.first, it.second.c_str());
     }
     return true;
 }

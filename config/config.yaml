@@ -16,3 +16,5 @@ html:
   root: /home/hsz/VScode/www/html/
 fiber:
   stack_size: 1048576 # 1024 * 1024
+EpollVec:
+  size: 5

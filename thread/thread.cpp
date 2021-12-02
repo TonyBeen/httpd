@@ -34,7 +34,7 @@ Thread::Thread(std::function<int()> cb, const String8& threadName, bool isDetach
     mThreadStatus(THREAD_EXIT),
     callBackReturn(THREAD_NO_RETURN)
 {
-
+    LOGD("%s()", __func__);
 }
 
 Thread::~Thread()
@@ -76,6 +76,7 @@ void Thread::Interrupt()
 
 int Thread::run(uint32_t stackSize)
 {
+    LOGD("Thread::run()");
     int ret = 0;
     switch (mThreadStatus)
     {
