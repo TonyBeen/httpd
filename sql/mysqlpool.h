@@ -21,7 +21,7 @@ class MysqlPool
 {
 public:
     MysqlPool(uint16_t sqlHandleNum, const String8 &db = "userdb", const String8 &userName = "mysql",
-              const String8 &passWord = "627096590", const String8 &IP = "127.0.0.1", const uint16_t &port = 3306);
+              const String8 &passWord = "123456", const String8 &IP = "127.0.0.1", const uint16_t &port = 3306);
     ~MysqlPool();
 
     MySqlConn *GetAConnection();
