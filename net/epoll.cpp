@@ -59,6 +59,7 @@ Epoll::~Epoll()
     delete mMysqlDb;
 }
 
+// TODO: 第一次http请求时会导致无法回应，需要在此刷新才可以
 bool Epoll::addEvent(int fd, const sockaddr_in &addr)
 {
     AutoLock<Mutex> lock(mEpollMutex);
@@ -214,10 +215,9 @@ void Epoll::ReadEventProcess(int fd)
     String8 url = parser.getUrl();
     static const String8 &defaultHtml = "index.html";
     String8 filePath;       // 要发送的文件及路径
-
     HttpResponse response(fd);
-    std::map<String8, String8> body;
 
+    response.setHttpVersion(version);
     response.addToResBody("Server", HttpResponse::GetDefaultResponseByKey("Server"));
     response.addToResBody("Connection", HttpResponse::GetDefaultResponseByKey("Connection"));
 
@@ -225,33 +225,37 @@ void Epoll::ReadEventProcess(int fd)
     case HttpMethod::GET:
         if (url == "/login") {
             ProcessLogin(url, parser, response);
+            SendToClient(response);
+            break;
         }
 
         if (url == "/") {
-            response.addToResBody("Content-Type", "text/html; charset=utf-8");
-            response.addToResBody("Content-Length", String8::format("%d", GetFileLength(root + defaultHtml)));
-
-            String8 resHeader = response.CreateHttpReponseHeader(version, HttpStatus::OK);
-            String8 resBody = response.CreateHttpReponseBody();
-            SendToClient(fd, resHeader + resBody, root + defaultHtml);
+            response.setFilePath(root + defaultHtml);
+            response.setHttpStatus(HttpStatus::OK);
+            SendToClient(response);
             break;
         }
+
         {
             int32_t dotIdx = url.find_last_of(".");
             if (dotIdx < 0) {
                 Send404(fd);
                 break;
             }
-            String8 fileExten = String8(url.c_str() + dotIdx + 1);  // 文件扩展名
-            body.insert(std::make_pair("Content-Type", String8::format("%s", GetContentTypeByFileExten(fileExten).c_str())));
-            body.insert(std::make_pair("Content-Length", String8::format("%d", GetFileLength(root + url))));
-            String8 resHeader = response.CreateHttpReponseHeader(version, HttpStatus::OK);
-            String8 resBody = response.CreateHttpReponseBody();
-            SendToClient(fd, resHeader + resBody, root + url);
+
+            response.setFilePath(root + url);
+            response.setHttpStatus(HttpStatus::OK);
+            SendToClient(response);
         }
 
         break;
     case HttpMethod::POST:
+        if (url == "/login") {
+            ProcessLogin(url, parser, response);
+            SendToClient(response);
+            break;
+        }
+
         break;
     default:
         break;
@@ -289,8 +293,10 @@ bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &r
     res = mMysqlDb->getSqlRes();
     if (res->getDataCount() == 1) { // 防止sql注入
         // 登录成功
-        response.setFilePath(root + "login.html");
+        LOGD("user name: %s login", username.c_str());
+        response.setFilePath(root + "home.html");
         response.setHttpStatus(HttpStatus::OK);
+        return true;
     }
 
 end:
@@ -354,6 +360,41 @@ void Epoll::SendToClient(int fd, const String8 &responseHeader, const String8 &f
         }
     }
     LOGD("%s() end", __func__);
+}
+
+void Epoll::SendToClient(const HttpResponse &httpRes)
+{
+    int clientSock = httpRes.getClientSocket();
+    String8 httpHdr = httpRes.CreateHttpReponseHeader() + httpRes.CreateHttpReponseBody();
+    LOGD("response \n%s", httpHdr.c_str());
+
+    const String8 &filePath = httpRes.getFilePath();
+    int fileDes = ::open(filePath.c_str(), O_RDONLY);
+    if (fileDes < 0) {
+        Send404(clientSock);
+        return;
+    }
+    int ret = ::send(clientSock, httpHdr.c_str(), httpHdr.length(), 0);
+    if (ret <= 0) {
+        LOGE("%s() send error. errno %d, %s", __func__, errno, strerror(errno));
+        return;
+    }
+    char buf[READ_BUFSIZE];
+    int readedSize = 0;
+    while (true) {
+        readedSize = ::read(fileDes, buf, READ_BUFSIZE);
+        if (readedSize <= 0) {
+            if (errno != EAGAIN) {
+                LOGE("%s() read error %d, errstr: %s", __func__, errno, strerror(errno));
+            }
+            break;
+        }
+        ret = ::send(clientSock, buf, readedSize, 0);
+        if (ret < 0) {
+            LOGE("send error %d, errstr: %s", errno, strerror(errno));
+            break;
+        }
+    }
 }
 
 void Epoll::Send404(int fd)

@@ -10,11 +10,11 @@ threadpool:
   max_thread_num: 8
 mysql:
   user: mysql
-  password: 123456
+  password: 627096590
   database: userdb
 html:
   root: /home/hsz/VScode/www/html/
 fiber:
   stack_size: 1048576 # 1024 * 1024
-EpollVec:
+epollvec:
   size: 5

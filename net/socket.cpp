@@ -262,7 +262,7 @@ void Socket::destroy()
 TcpServer::TcpServer(uint16_t port, const String8 &IP) :
     Socket(TCP, IPv4, port, IP)
 {
-    gSizeOfEpollVec = Config::Lookup<uint32_t>("EpollVec.size", 5);
+    gSizeOfEpollVec = Config::Lookup<uint32_t>("epollvec.size", 5);
 
     for (int i = 0; i < gSizeOfEpollVec; ++i) {
         std::shared_ptr<Epoll> epollTmp(new Epoll());

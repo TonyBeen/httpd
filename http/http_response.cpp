@@ -39,20 +39,24 @@ void HttpResponse::delFromBody(const String8 &key)
     mHttpResBody.erase(it);
 }
 
-String8 HttpResponse::CreateHttpReponseHeader(HttpVersion ver, HttpStatus status)
+String8 HttpResponse::CreateHttpReponseHeader() const
 {
-    if (isLocked == false) {
-        this->mVer = ver;
-        this->mStatus = status;
-    }
-
     String8 ret;
-    ret.appendFormat("%s %d %s\r\n",
-        HttpVersion2String(ver).c_str(), (int)status, HttpStatus2String(status).c_str());
+    ret.appendFormat("%s %d %s\r\n", HttpVersion2String(mVer).c_str(), (int)mStatus, HttpStatus2String(mStatus).c_str());
     return ret;
 }
 
-String8 HttpResponse::CreateHttpReponseBody()
+String8 HttpResponse::CreateHttpReponseHeader(HttpVersion ver, HttpStatus status)
+{
+    if (isLocked == false) {
+        mVer = ver;
+        mStatus = status;
+    }
+
+    return CreateHttpReponseHeader();
+}
+
+String8 HttpResponse::CreateHttpReponseBody() const
 {
     String8 ret;
     for (const auto &it : mHttpResBody) {
@@ -73,7 +77,14 @@ String8 HttpResponse::GetDefaultResponseByKey(const String8 &key)
 
 void HttpResponse::setFilePath(const String8 &fp)
 {
+    if (isLocked) {
+        return;
+    }
+
     mWillSendFilePath = fp;
+    int dotIdx = fp.find('.');
+    const String8 &fileExten = String8(fp.c_str() + dotIdx + 1);
+    mHttpResBody.emplace(std::make_pair("Content-Type", String8::format("%s", GetContentTypeByFileExten(fileExten).c_str())));
     mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", GetFileLength(mWillSendFilePath))));
 }
 

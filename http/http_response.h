@@ -19,6 +19,8 @@ class HttpResponse
 public:
     HttpResponse(int fd) : mClientFd(fd) {}
     ~HttpResponse() {}
+    HttpResponse(const HttpResponse &v) = delete;
+    HttpResponse &operator=(const HttpResponse &v) = delete;
 
     bool locked() const { return isLocked; }
     bool lock() { isLocked = true; return isLocked; }
@@ -30,11 +32,14 @@ public:
     void delFromBody(const String8 &key);
     void setFilePath(const String8 &fp);
 
-    const HttpVersion &getHttpVersion() const { return mVer; }
-    const HttpStatus  &getHttpStatus()  const { return mStatus; }
+    const int32_t       &getClientSocket() const { return mClientFd; }
+    const String8       &getFilePath() const { return mWillSendFilePath; }
+    const HttpVersion   &getHttpVersion() const { return mVer; }
+    const HttpStatus    &getHttpStatus()  const { return mStatus; }
 
+    String8 CreateHttpReponseHeader() const;
     String8 CreateHttpReponseHeader(HttpVersion ver, HttpStatus status);
-    String8 CreateHttpReponseBody();
+    String8 CreateHttpReponseBody() const;
     static String8 GetDefaultResponseByKey(const String8 &key);
 
 private:
