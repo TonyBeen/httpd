@@ -289,7 +289,7 @@ bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &r
             cond.c_str(), mMysqlDb->getErrno(), mMysqlDb->getErrorStr());
         goto end;
     }
-    
+
     res = mMysqlDb->getSqlRes();
     if (res->getDataCount() == 1) { // 防止sql注入
         // 登录成功

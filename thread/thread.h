@@ -60,7 +60,7 @@ private:
     pthread_t               mThreadId;
 
     bool                    mIsDetach;
-    std::function<int()>   mThreadFunc;
+    std::function<int()>    mThreadFunc;
     std::atomic<uint8_t>    mThreadStatus;
     int  callBackReturn;
 };
