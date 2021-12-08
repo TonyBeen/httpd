@@ -6,14 +6,13 @@
  ************************************************************************/
 
 #include "application.h"
-#include "application.h"
 #include "config.h"
 #include "net/socket.h"
 #include <log/log.h>
 #include <unistd.h>
-#include <iostream>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <atomic>
 
 #define LOG_TAG "application"
 
@@ -22,6 +21,8 @@ static String8 root;
 static uint64_t gRestartCount = 0;
 static String8 gLocalAddress = getLocalAddress()[0];
 static uint16_t gPort;
+static uint32_t gFatherPid = 0;
+static uint32_t gSonPid = 0;
 
 Application::Application() :
     mRunAsDaemons(false)
@@ -109,6 +110,14 @@ void Signalcatch(int sig)
         // 产生堆栈信息;
         LOG_ASSERT(false, "");
     }
+
+    if (sig == SIGUSR1) {
+        if (gettid() == gFatherPid) {
+            kill(gSonPid, SIGKILL);
+        } else if (gettid() == gSonPid) {
+            exit(SIGKILL);
+        }
+    }
 }
 
 int Application::main()
@@ -116,6 +125,7 @@ int Application::main()
     signal(SIGPIPE, SIG_IGN);
     signal(SIGABRT, Signalcatch);
     signal(SIGSEGV, Signalcatch);
+    signal(SIGUSR1, Signalcatch);
 
     TcpServer tcpServer(gPort, gLocalAddress);
     while (true) {
@@ -123,6 +133,7 @@ int Application::main()
         if (mRunAsDaemons) {
             break;
         }
+
         if (status == Thread::THREAD_WAITING) {
             msleep(1000);
         }
@@ -142,18 +153,21 @@ void Application::start_with_daemon()
             return;
         } else if (pid > 0) { // 父进程
             int status = 0;
+            gFatherPid = gettid();
+            gSonPid = pid;
             waitpid(pid, &status, 0);
             if (status) {
                 if (status == SIGKILL) {
-                    LOGI("%d killed", pid);
+                    LOGI("pid %d killed", pid);
                     break;
                 } else {
-                    LOGE("%d", status);
+                    LOGE("Subprocess exit with %d", status);
                 }
             }
             gRestartCount++;
         }
     }
+    LOGI("restart count = %llu", gRestartCount);
 }
 
 void Application::start_with_terminal()
