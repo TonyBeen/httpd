@@ -29,6 +29,7 @@ static String8  root;
 static String8  gMysqlUser;
 static String8  gMysqlPasswd;
 static String8  gDatabaseName;
+static const String8 &gIndexHtml = "index.html";
 
 Epoll::Epoll() :
     mEpollFd(0)
@@ -213,7 +214,7 @@ void Epoll::ReadEventProcess(int fd)
     HttpMethod method = parser.getMethod();
     HttpVersion version = parser.getVersion();
     String8 url = parser.getUrl();
-    static const String8 &defaultHtml = "index.html";
+
     String8 filePath;       // 要发送的文件及路径
     HttpResponse response(fd);
 
@@ -230,7 +231,7 @@ void Epoll::ReadEventProcess(int fd)
         }
 
         if (url == "/") {
-            response.setFilePath(root + defaultHtml);
+            response.setFilePath(root + gIndexHtml);
             response.setHttpStatus(HttpStatus::OK);
             SendToClient(response);
             break;
@@ -312,7 +313,7 @@ end:
         response.lock();
     } else {
         response.setHttpStatus(HttpStatus::OK);
-        url = "/";
+        response.setFilePath(root + gIndexHtml);
     }
     
     return false;
