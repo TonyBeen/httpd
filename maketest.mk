@@ -3,17 +3,17 @@ CPP_FLAGS := -std=c++11
 
 CURRENT_PATH := $(shell pwd)
 
-INCLUDE := 	-I/home/hsz/VScode/httpd/
+INCLUDE := 	-I$(CURRENT_PATH)
 
-STATIC_LIB := /usr/local/lib/libyaml-cpp.a # /usr/local/lib/libthreadpool.a
-SHARED_LIB := -lutils -llog -lsqlutils -lpthread
+STATIC_LIB := /usr/local/lib/libyaml-cpp.a /usr/local/lib/libmysqlclient.a # /usr/local/lib/libthreadpool.a
+SHARED_LIB := -lutils -llog -lpthread -ldl
 
 SQL_DIR = $(CURRENT_PATH)/sql
 NET_DIR = $(CURRENT_PATH)/net
 HTTP_DIR = $(CURRENT_PATH)/http
 THREAD_DIR = $(CURRENT_PATH)/thread
 
-TEST_DIR = ./test
+TEST_DIR = $(CURRENT_PATH)/test
 TEST_INCLUDE_PATH = -I$(CURRENT_PATH)
 
 testconfig_src := $(TEST_DIR)/test_config.cc config.cpp

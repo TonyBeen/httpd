@@ -1,10 +1,11 @@
 include ./maketest.mk
 
-CPPSRC := $(wildcard ./*.cpp)
-CPPSRC += $(wildcard ./util/*.cpp)
-CPPSRC += $(wildcard ./net/*.cpp)
-CPPSRC += $(wildcard ./http/*.cpp)
-CPPSRC += $(wildcard ./thread/*.cpp)
+CPPSRC := $(wildcard $(CURRENT_PATH)/*.cpp)
+CPPSRC += $(wildcard $(CURRENT_PATH)/util/*.cpp)
+CPPSRC += $(wildcard $(CURRENT_PATH)/net/*.cpp)
+CPPSRC += $(wildcard $(CURRENT_PATH)/http/*.cpp)
+CPPSRC += $(wildcard $(CURRENT_PATH)/thread/*.cpp)
+CPPSRC += $(wildcard $(CURRENT_PATH)/sql/*.cpp)
 
 OBJ := $(patsubst %.cpp, %.o, $(CPPSRC))
 
