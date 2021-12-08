@@ -70,7 +70,7 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
         break;
     case HttpMethod::POST:
         mRequestData.set(httpRequest.c_str() + index, httpRequest.length() - index);
-        LOGD("POST data: %s", mRequestData.data());
+        LOGD("POST data: [%s]", mRequestData.data());
         break;
     case HttpMethod::PUT:
         break;
@@ -82,7 +82,7 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
     return mHttpRequestMap;
 }
 
-// username=eular&password=123
+// username=xxxx&password=xxxx
 bool HttpParser::ParserRequestData()
 {
     if (mRequestData.size() == 0) {
