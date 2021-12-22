@@ -13,7 +13,7 @@
 #define LOG_TAG "test_threadloop"
 
 using namespace std;
-using namespace Jarvis;
+using namespace eular;
 
 void func(int i)
 {

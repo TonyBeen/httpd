@@ -14,7 +14,7 @@
 #include <string>
 #include <memory>
 
-namespace Jarvis {
+namespace eular {
 class SqlResBase;
 class SqlBase {
 public:
@@ -70,6 +70,6 @@ public:
     virtual bool next() = 0;
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __ALIAS_SQL_BASE_H__

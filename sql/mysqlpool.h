@@ -16,7 +16,7 @@
 #include <vector>
 #include <atomic>
 
-namespace Jarvis {
+namespace eular {
 class MysqlPool
 {
 public:
@@ -46,6 +46,6 @@ private:
     std::vector<std::pair<MySqlConn *, bool>> mMysqlPool;
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __MYSQL_POOL_H__

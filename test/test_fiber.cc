@@ -3,7 +3,7 @@
 #include <utils/thread.h>
 
 #define LOG_TAG "test_fiber"
-using namespace Jarvis;
+using namespace eular;
 
 void test_fiber()
 {

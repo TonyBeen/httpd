@@ -1,7 +1,7 @@
 #include "config.h"
 #include <iostream>
 
-using namespace Jarvis;
+using namespace eular;
 using namespace std;
 
 void test_static_func()

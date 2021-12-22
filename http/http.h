@@ -10,7 +10,7 @@
 
 #include <utils/string8.h>
 
-namespace Jarvis {
+namespace eular {
 
 /* Request Methods */
 #define HTTP_METHOD_MAP(XX)           \
@@ -148,6 +148,6 @@ String8     HttpVersion2String(HttpVersion hv);
 HttpVersion String2HttpVersion(String8 str);
 String8     GetContentTypeByFileExten(const String8 &fileExt);
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __HTPP_H__

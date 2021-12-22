@@ -10,7 +10,7 @@
 
 #define LOG_TAG "mysqlpool"
 
-namespace Jarvis {
+namespace eular {
 MysqlPool::MysqlPool(uint16_t sqlHandleNum, const String8 &db, const String8 &userName,
                      const String8 &passWord, const String8 &IP, const uint16_t &port) :
     mUsername(userName),
@@ -109,4 +109,4 @@ void MysqlPool::FreeAConnection(MySqlConn *conn)
 }
 
 
-} // namespace Jarvis
+} // namespace eular

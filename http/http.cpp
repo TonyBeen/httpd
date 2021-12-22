@@ -7,7 +7,7 @@
 
 #include "http.h"
 
-namespace Jarvis {
+namespace eular {
 
 static const char *gMethodString[] = {
 #define XX(num, name, string)  #string,
@@ -90,4 +90,4 @@ String8 GetContentTypeByFileExten(const String8 &fileExt)
     return "";
 }
 
-} // namespace Jarvis
+} // namespace eular

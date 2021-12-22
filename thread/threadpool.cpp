@@ -12,7 +12,7 @@
 #define LOG_TAG "threadpool"
 #define THREAD_NUM_ONCE 2
 
-namespace Jarvis {
+namespace eular {
 
 static thread_local Fiber *gMainFiber = nullptr;
 thread_local std::function<void()> ThreadPool::mIdle;

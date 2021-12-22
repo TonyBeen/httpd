@@ -14,7 +14,7 @@
 #include <map>
 #include <memory>
 
-namespace Jarvis {
+namespace eular {
 
 class HttpParser
 {
@@ -43,6 +43,6 @@ private:
     HttpRquestMap   mRequestDataMap;    // 解析出的post或get键值对
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __HTTP_PASER_H__

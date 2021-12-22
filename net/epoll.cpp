@@ -22,7 +22,7 @@
 #define READ_BUFSIZE     1024
 #define WRITE_BUFSIZE    1024
 
-namespace Jarvis {
+namespace eular {
 static uint32_t gMinThreadNum;
 static uint32_t gMaxThreadNum;
 static String8  root;
@@ -402,7 +402,7 @@ void Epoll::Send404(int fd)
 {
     LOGI("%s()", __func__);
     static const char *defaultHeader = {
-        "HTTP/1.0 404 Not Found\r\n Server: Jarvis V1.0\r\n Content-Type: text/html; charset=utf-8\r\n" };
+        "HTTP/1.0 404 Not Found\r\n Server: eular V1.0\r\n Content-Type: text/html; charset=utf-8\r\n" };
     struct stat st;
     static const String8 html404 = String8(root + "/404.html");
     int ret = stat(html404.c_str(), &st);
@@ -463,4 +463,4 @@ int Epoll::ReadHttpHeader(int fd, ByteBuffer &buf)
     return buf.size();
 }
 
-} // namespace Jarvis
+} // namespace eular

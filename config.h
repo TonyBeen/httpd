@@ -18,15 +18,15 @@
 #include <map>
 #include <list>
 
-namespace Jarvis {
+namespace eular {
 namespace TypeCast {
 template<typename T>
 T Chars2Other(const char *src)
 {
     T t = T();
-    Jarvis::String8 str;
+    eular::String8 str;
     str.appendFormat("invalid type. %s", typeid(T).name());
-    throw Jarvis::bad_type_cast_exception(str);
+    throw eular::bad_type_cast_exception(str);
     return t;
 }
 }
@@ -67,6 +67,6 @@ private:
     static Mutex   mMutex;
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __CONFIG_H__

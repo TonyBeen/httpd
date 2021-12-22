@@ -18,7 +18,7 @@
 
 #define THREAD_NO_RETURN (0xFFF)
 
-namespace Jarvis {
+namespace eular {
 class Thread
 {
 public:
@@ -66,6 +66,6 @@ private:
 };
 
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __HTTPD_THREAD_H__

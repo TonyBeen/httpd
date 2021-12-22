@@ -14,7 +14,7 @@
 
 #define DEFAULT_CONFIG_PATH ""  // unused
 
-namespace Jarvis {
+namespace eular {
 
 namespace TypeCast {
 // 模板全特化
@@ -121,4 +121,4 @@ void Config::foreach()
     }
 }
 
-} // namespace Jarvis
+} // namespace eular

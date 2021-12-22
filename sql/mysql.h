@@ -12,7 +12,7 @@
 #include <utils/utils.h>
 #include <map>
 
-namespace Jarvis {
+namespace eular {
 class MySqlConn : public SqlBase
 {
 public:
@@ -87,6 +87,6 @@ private:
     std::shared_ptr<MYSQL_RES> mResData;
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __ALIAS_SQL_CONN_H__

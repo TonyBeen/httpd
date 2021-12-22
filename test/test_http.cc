@@ -12,16 +12,16 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    Jarvis::String8 strMethod = Jarvis::HttpMethod2String(Jarvis::HttpMethod::GET);
+    eular::String8 strMethod = eular::HttpMethod2String(eular::HttpMethod::GET);
     cout << "method: " << strMethod << endl;
-    Jarvis::HttpMethod intMethod = Jarvis::String2HttpMethod(strMethod);
+    eular::HttpMethod intMethod = eular::String2HttpMethod(strMethod);
     cout << "method GET = " << intMethod << endl;
-    assert(intMethod == Jarvis::HttpMethod::GET);
+    assert(intMethod == eular::HttpMethod::GET);
 
-    Jarvis::String8 strStatus = Jarvis::HttpStatus2String(Jarvis::HttpStatus::OK);
+    eular::String8 strStatus = eular::HttpStatus2String(eular::HttpStatus::OK);
     cout << "status: " << strStatus << endl;
-    Jarvis::HttpStatus intStatus = Jarvis::String2HttpStatus(strStatus);
+    eular::HttpStatus intStatus = eular::String2HttpStatus(strStatus);
     cout << "status OK = " << intStatus << endl;
-    assert(intStatus == Jarvis::HttpStatus::OK);
+    assert(intStatus == eular::HttpStatus::OK);
     return 0;
 }

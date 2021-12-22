@@ -19,7 +19,7 @@
 #include <map>
 #include <memory>
 
-namespace Jarvis {
+namespace eular {
 class Socket
 {
     DISALLOW_COPY_AND_ASSIGN(Socket);
@@ -127,6 +127,6 @@ private:
 //     socklen_t   mSockLen;
 // };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif

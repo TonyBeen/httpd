@@ -7,7 +7,7 @@
 
 #include "thread/thread.h"
 
-using namespace Jarvis;
+using namespace eular;
 using namespace std;
 
 int test_func(int fd)

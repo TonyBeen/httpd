@@ -13,7 +13,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace Jarvis;
+using namespace eular;
 
 #define LOG_TAG "mysqlpool test"
 

@@ -21,7 +21,7 @@
 #include <memory>
 #include <map>
 
-namespace Jarvis {
+namespace eular {
 class Epoll
 {
     DISALLOW_COPY_AND_ASSIGN(Epoll);
@@ -55,6 +55,6 @@ private:
 };
 
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __EPOLL_H__

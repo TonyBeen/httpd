@@ -8,10 +8,10 @@
 #include "http_response.h"
 #include <utils/utils.h>
 
-namespace Jarvis {
+namespace eular {
 
 static std::map<String8, String8> gDefaultReponse = {
-    {"Server", "Jarvis/Httpd v1.0"},
+    {"Server", "eular/Httpd v1.0"},
     {"Connection", "keep-alive"}
 };
 
@@ -88,4 +88,4 @@ void HttpResponse::setFilePath(const String8 &fp)
     mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", GetFileLength(mWillSendFilePath))));
 }
 
-} // namespace Jarvis
+} // namespace eular

@@ -11,7 +11,7 @@
 #include <utils/string8.h>
 #include <map>
 
-namespace Jarvis {
+namespace eular {
 class Env {
 public:
     Env();
@@ -58,6 +58,6 @@ private:
 };
 
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __APPLICATION_H__

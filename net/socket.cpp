@@ -16,7 +16,7 @@
 #define LOG_TAG "socket"
 #define LISTEN_SOCKET_NUM 512
 
-namespace Jarvis {
+namespace eular {
 
 static uint32_t gSizeOfEpollVec  = 0;
 
@@ -340,4 +340,4 @@ int TcpServer::accept_loop()
     return Thread::THREAD_WAITING;
 }
 
-} // namespace Jarvis
+} // namespace eular

@@ -4,7 +4,7 @@
 
 #define LOG_TAG "test-socket"
 
-using namespace Jarvis;
+using namespace eular;
 
 void test_tcp()
 {

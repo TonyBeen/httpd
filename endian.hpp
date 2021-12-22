@@ -22,7 +22,7 @@
 #define JARVIS_BYTE_ORDER JARVIS_LITTLE_ENDIAN
 #endif
 
-namespace Jarvis {
+namespace eular {
 // 8字节类型转换
 template<typename T>
 typename std::enable_if<sizeof(T) == sizeof(uint64_t), T>::type
@@ -77,6 +77,6 @@ T BigEndian2LittleEndian(T value)
 }
 #endif
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __ENDIAN_HPP__

@@ -12,7 +12,7 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-    using namespace Jarvis;
+    using namespace eular;
     cout << Address::GetBroadcastAddr("192.168.23.143", 24) << endl;    // 192.168.23.255
     cout << Address::GetBroadcastAddr("202.112.14.137", 27) << endl;    // 202.112.14.159
 

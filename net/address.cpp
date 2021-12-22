@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-namespace Jarvis {
+namespace eular {
 Address::Address()
 {
 
@@ -72,4 +72,4 @@ std::ostream &operator <<(std::ostream &out, Address addr)
     out << buf;
     return out;
 }
-} // namespace Jarvis
+} // namespace eular

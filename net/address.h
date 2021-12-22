@@ -14,7 +14,7 @@
 /**
  * 提供地址和端口号供socket调用
  */
-namespace Jarvis {
+namespace eular {
 class Address : public std::enable_shared_from_this<Address>
 {
     friend class Epoll;
@@ -47,6 +47,6 @@ private:
 
 std::ostream &operator <<(std::ostream &out, Address addr);
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __ADDRESS_H__

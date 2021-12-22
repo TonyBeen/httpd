@@ -11,7 +11,7 @@
 
 #define LOG_TAG "HttpPaser"
 
-namespace Jarvis {
+namespace eular {
 
 HttpParser::HttpParser(const ByteBuffer& httpRequest) :
     HttpParser(String8(httpRequest.const_data()))
@@ -130,4 +130,4 @@ bool HttpParser::KeepAlive() const
     return true;
 }
 
-} // namespace Jarvis
+} // namespace eular

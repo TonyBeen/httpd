@@ -19,7 +19,7 @@
 #include <atomic>
 #include <vector>
 
-namespace Jarvis {
+namespace eular {
 
 class ThreadPool
 {
@@ -98,6 +98,6 @@ private:
     static thread_local std::function<void()> mIdle;      // 线程空闲时执行函数
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __THREAD_POOL_H__

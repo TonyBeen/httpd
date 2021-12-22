@@ -9,7 +9,7 @@
 
 int main(int argc, char **argv)
 {
-    Jarvis::Application app;
+    eular::Application app;
     app.init(argc, argv);
 
     return app.run();

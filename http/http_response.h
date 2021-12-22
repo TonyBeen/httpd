@@ -12,7 +12,7 @@
 #include <utils/string8.h>
 #include <map>
 
-namespace Jarvis {
+namespace eular {
 
 class HttpResponse
 {
@@ -52,6 +52,6 @@ private:
     String8         mWillSendFilePath;
 };
 
-} // namespace Jarvis
+} // namespace eular
 
 #endif // __HTTP_RESPONSE_H__

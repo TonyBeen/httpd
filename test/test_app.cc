@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv)
 {
-    using namespace Jarvis;
+    using namespace eular;
     Application app;
     app.init(argc, argv);
     return 0;

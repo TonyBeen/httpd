@@ -11,7 +11,7 @@
 
 #define LOG_TAG "thread"
 
-namespace Jarvis {
+namespace eular {
 
 Thread::Thread() :
     mThreadName(""),
@@ -145,4 +145,4 @@ void *Thread::threadloop(void *arg)
     return nullptr;
 }
 
-} // namespace Jarvis
+} // namespace eular

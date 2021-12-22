@@ -16,7 +16,7 @@
 
 #define LOG_TAG "application"
 
-namespace Jarvis {
+namespace eular {
 static String8 root;
 static uint64_t gRestartCount = 0;
 static String8 gLocalAddress = getLocalAddress()[0];
@@ -276,5 +276,5 @@ const String8& Env::getHomeDir() const
 }
 
 
-} // namespace Jarvis
+} // namespace eular
 
