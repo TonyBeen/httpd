@@ -14,7 +14,7 @@
 namespace eular {
 
 HttpParser::HttpParser(const ByteBuffer& httpRequest) :
-    HttpParser(String8(httpRequest.const_data()))
+    HttpParser(String8((const char *)httpRequest.const_data()))
 {
 
 }
@@ -63,13 +63,13 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
     case HttpMethod::GET:
         queMarkPos =  String8::kmp_strstr(url, "?"); // ?的位置
         if (queMarkPos > 0) {
-            mRequestData.set(url + queMarkPos + 1, strlen(url + queMarkPos + 1));
+            mRequestData.set((const uint8_t *)url + queMarkPos + 1, strlen(url + queMarkPos + 1));
             mUrl = String8(url, queMarkPos);
             LOGD("url reset to %s", mUrl.c_str());
         }
         break;
     case HttpMethod::POST:
-        mRequestData.set(httpRequest.c_str() + index, httpRequest.length() - index);
+        mRequestData.set((const uint8_t *)httpRequest.c_str() + index, httpRequest.length() - index);
         LOGD("POST data: [%s]", mRequestData.data());
         break;
     case HttpMethod::PUT:
@@ -90,7 +90,7 @@ bool HttpParser::ParserRequestData()
     }
     int32_t pos = 0;
     int32_t prevPos = 0;
-    String8 requestData = mRequestData.const_data();
+    String8 requestData = (const char *)mRequestData.const_data();
 
     while ((pos = requestData.find('&', prevPos)) > 0) {
         String8 keyValue = String8(requestData.c_str() + prevPos, pos);

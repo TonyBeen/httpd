@@ -203,7 +203,7 @@ void Epoll::ReadEventProcess(int fd)
             ::close(fd);
             return;
         }
-        buffer.append(readBuf, readSize);
+        buffer.append((uint8_t *)readBuf, readSize);
         memset(readBuf, 0, READ_BUFSIZE);
     }
     if (buffer.size() == 0) {
@@ -449,12 +449,12 @@ int Epoll::ReadHttpHeader(int fd, ByteBuffer &buf)
         }
         int32_t index = String8::kmp_strstr(tmp, "\r\n\r\n");
         if (index < 0) {
-            buf.append(tmp, ret);
+            buf.append((uint8_t *)tmp, ret);
             ret = recv(fd, tmp, READ_BUFSIZE, 0);
         } else {
             memset(tmp, 0, READ_BUFSIZE);
             ret = recv(fd, tmp, index + 4, 0);
-            buf.append(tmp, ret);
+            buf.append((uint8_t *)tmp, ret);
             break;
         }
         memset(tmp, 0, READ_BUFSIZE);
