@@ -10,7 +10,7 @@ threadpool:
   max_thread_num: 8
 mysql:
   user: mysql
-  password: 627096590
+  password: 123456
   database: userdb
 html:
   root: /home/hsz/VScode/www/html/
