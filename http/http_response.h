@@ -17,7 +17,7 @@ namespace eular {
 class HttpResponse
 {
 public:
-    HttpResponse(int fd) : mClientFd(fd) {}
+    HttpResponse(int fd) : mClientFd(fd), isLocked(false) {}
     ~HttpResponse() {}
     HttpResponse(const HttpResponse &v) = delete;
     HttpResponse &operator=(const HttpResponse &v) = delete;
@@ -41,6 +41,8 @@ public:
     String8 CreateHttpReponseHeader(HttpVersion ver, HttpStatus status);
     String8 CreateHttpReponseBody() const;
     static String8 GetDefaultResponseByKey(const String8 &key);
+
+    void dump(String8 &msg);
 
 private:
     HttpVersion     mVer;

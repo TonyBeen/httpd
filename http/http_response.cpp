@@ -88,4 +88,10 @@ void HttpResponse::setFilePath(const String8 &fp)
     mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", GetFileLength(mWillSendFilePath))));
 }
 
+void HttpResponse::dump(String8 &msg)
+{
+    msg += CreateHttpReponseHeader();
+    msg += CreateHttpReponseBody();
+}
+
 } // namespace eular

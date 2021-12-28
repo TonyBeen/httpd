@@ -181,7 +181,7 @@ void Epoll::ReadEventProcess(int fd)
     LOGI("%s()", __func__);
     LOG_ASSERT(fd > 0, "%s:%d %s()", __FILE__, __LINE__, __func__);
 
-    char readBuf[READ_BUFSIZE] = {0};
+    uint8_t readBuf[READ_BUFSIZE] = {0};
     int readSize = READ_BUFSIZE;
     ByteBuffer buffer;
     while (true) {
@@ -203,7 +203,7 @@ void Epoll::ReadEventProcess(int fd)
             ::close(fd);
             return;
         }
-        buffer.append((uint8_t *)readBuf, readSize);
+        buffer.append(readBuf, readSize);
         memset(readBuf, 0, READ_BUFSIZE);
     }
     if (buffer.size() == 0) {
@@ -372,6 +372,7 @@ void Epoll::SendToClient(const HttpResponse &httpRes)
     const String8 &filePath = httpRes.getFilePath();
     int fileDes = ::open(filePath.c_str(), O_RDONLY);
     if (fileDes < 0) {
+        LOGD("open file %s failed. send404.", filePath.c_str());
         Send404(clientSock);
         return;
     }

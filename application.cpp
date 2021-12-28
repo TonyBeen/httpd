@@ -202,8 +202,7 @@ bool Env::init(int argc, char **argv)
             continue;
         }
         char which = *(argv[i] + pos + 1);
-        switch (which)
-        {
+        switch (which) {
         case 'p':   // -p 打印帮助信息
             add("p", "");
             break;
