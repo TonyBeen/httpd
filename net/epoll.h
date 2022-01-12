@@ -42,6 +42,7 @@ protected:
     virtual void SendToClient(const HttpResponse &httpRes);
     virtual void SendToClient(int fd, const String8 &responseHeader, const String8 &filePath);
     virtual void Send404(int fd);
+    virtual void Send400(int fd);
     virtual void LoadConfig();
     virtual int  ReadHttpHeader(int fd, ByteBuffer &buf);
 
