@@ -14,3 +14,4 @@
 > ###### TODO
 > `1、处理 标签<Connection: close>的情况`
 > `2、过滤 User-Agent`
+> `3、请求数据乱写会导致崩溃 HttpPaser::ParserRequestData`

