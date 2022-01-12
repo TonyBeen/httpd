@@ -117,12 +117,13 @@ bool HttpParser::ParserRequestData()
 
 const String8 &HttpParser::getValueByKey(const String8 &key) const
 {
-    auto ret = mRequestDataMap.find(key);
-    if (ret == mRequestDataMap.end()) {
-        return "";
+    static String8 ret = "";
+    auto it = mRequestDataMap.find(key);
+    if (it == mRequestDataMap.end()) {
+        return ret;
     }
 
-    return ret->second;
+    return it->second;
 }
 
 bool HttpParser::KeepAlive() const
