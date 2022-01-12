@@ -10,3 +10,7 @@
 > ###### `配置统一由config/config.yaml来管理，由Config加载，支持字符串转int, long, uint, ulong, bool, const char *; 未使用boost::lexical_cast`
 
 > ###### 目前可以编译生成httpd，也可以获取到静态html，登录等一些基本逻辑暂未实现
+
+> ###### TODO
+> `1、处理 标签<Connection: close>的情况`
+> `2、过滤 User-Agent`
