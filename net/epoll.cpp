@@ -226,11 +226,11 @@ void Epoll::ReadEventProcess(int fd)
 
     switch (method) {
     case HttpMethod::GET:
-        if (url == "/login") {
-            ProcessLogin(url, parser, response);
-            SendToClient(response);
-            break;
-        }
+        // if (url == "/login") {
+        //     ProcessLogin(url, parser, response);
+        //     SendToClient(response);
+        //     break;
+        // }
 
         if (url == "/") {
             response.setFilePath(root + gIndexHtml);
@@ -239,8 +239,12 @@ void Epoll::ReadEventProcess(int fd)
             break;
         }
 
+        if (url == "/register") {
+
+        }
+
         {
-            int32_t dotIdx = url.find_last_of(".");
+            int32_t dotIdx = url.find('.');
             if (dotIdx < 0) {
                 Send404(fd);
                 break;
@@ -261,6 +265,7 @@ void Epoll::ReadEventProcess(int fd)
 
         break;
     default:
+        Send400(fd);
         break;
     }
 
@@ -374,6 +379,14 @@ void Epoll::SendToClient(const HttpResponse &httpRes)
     LOGD("response \n%s", httpHdr.c_str());
 
     const String8 &filePath = httpRes.getFilePath();
+    if (filePath.length() == 0) {
+        int ret = ::send(clientSock, httpHdr.c_str(), httpHdr.length(), 0);
+        if (ret <= 0) {
+            LOGE("%s() send error. errno %d, %s", __func__, errno, strerror(errno));
+        }
+        return;
+    }
+
     int fileDes = ::open(filePath.c_str(), O_RDONLY);
     if (fileDes < 0) {
         LOGD("open file %s failed. send404.", filePath.c_str());
@@ -405,9 +418,9 @@ void Epoll::SendToClient(const HttpResponse &httpRes)
 
 void Epoll::Send404(int fd)
 {
-    LOGI("%s()", __func__);
+    LOGD("%s()", __func__);
     static const char *defaultHeader = {
-        "HTTP/1.0 404 Not Found\r\n Server: eular V1.0\r\n Content-Type: text/html; charset=utf-8\r\n" };
+        "HTTP/1.0 404 Not Found\r\n Server: eular/httpd v1.0\r\n Content-Type: text/html; charset=utf-8\r\n" };
     struct stat st;
     static const String8 html404 = String8(root + "/404.html");
     int ret = stat(html404.c_str(), &st);
@@ -436,6 +449,16 @@ void Epoll::Send404(int fd)
             break;
         }
     }
+}
+
+void Epoll::Send400(int fd)
+{
+    static const char *defaultHeader = {
+        "HTTP/1.0 400 Bad Request\r\n"
+        "Server: eular/httpd v1.0\r\n"
+        "Content-Type: text/html; charset=utf-8\r\n"
+        "Content-Length: 0"};
+    ::send(fd, defaultHeader, strlen(defaultHeader), 0);
 }
 
 int Epoll::ReadHttpHeader(int fd, ByteBuffer &buf)
