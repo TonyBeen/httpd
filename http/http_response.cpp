@@ -11,8 +11,7 @@
 namespace eular {
 
 static std::map<String8, String8> gDefaultReponse = {
-    {"Server", "eular/httpd v1.0"},
-    {"Connection", "keep-alive"}
+    {"Server", "eular/httpd v1.0"}
 };
 
 

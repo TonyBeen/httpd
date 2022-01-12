@@ -157,10 +157,9 @@ int Epoll::main_loop()
             int cfd = event.data.fd;
 
             if (event.events & (EPOLLHUP | EPOLLRDHUP)) {  // 对端关闭连接
-                LOGI("EPOLLHUP | EPOLLRDHUP event");
                 const auto &it = mClientMap.find(cfd);
                 LOG_ASSERT(it != mClientMap.end(), "");
-                LOGI("main_loop() client %d [%s:%u] shutdown", cfd, inet_ntoa(it->second.sin_addr), ntohs(it->second.sin_port));
+                LOGI("main_loop() EPOLLHUP | EPOLLRDHUP event. client %d [%s:%u] shutdown", cfd, inet_ntoa(it->second.sin_addr), ntohs(it->second.sin_port));
                 delEvent(cfd);
                 ::close(cfd);
                 continue;
@@ -220,7 +219,11 @@ void Epoll::ReadEventProcess(int fd)
 
     response.setHttpVersion(version);
     response.addToResBody("Server", HttpResponse::GetDefaultResponseByKey("Server"));
-    response.addToResBody("Connection", HttpResponse::GetDefaultResponseByKey("Connection"));
+    if (parser.KeepAlive()) {
+        response.addToResBody("Connection", "keep-alive");
+    } else {
+        response.addToResBody("Connection", "close");
+    }
 
     switch (method) {
     case HttpMethod::GET:
@@ -261,7 +264,8 @@ void Epoll::ReadEventProcess(int fd)
     default:
         break;
     }
-    
+
+    delEvent(fd);
     LOGD("%s() end", __func__);
 }
 

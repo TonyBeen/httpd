@@ -29,6 +29,7 @@ public:
     const HttpVersion &getVersion() const { return mVersion; }
     const ByteBuffer  &getRequest() const { return mRequestData; }
     const HttpRquestMap &getRequestMap() const { return mRequestDataMap; }
+    const String8     &getValueByKey(const String8 &key) const;
     bool  KeepAlive() const;
 
 private:

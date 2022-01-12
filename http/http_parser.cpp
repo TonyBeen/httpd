@@ -115,6 +115,16 @@ bool HttpParser::ParserRequestData()
     return true;
 }
 
+const String8 &HttpParser::getValueByKey(const String8 &key) const
+{
+    auto ret = mRequestDataMap.find(key);
+    if (ret == mRequestDataMap.end()) {
+        return "";
+    }
+
+    return ret->second;
+}
+
 bool HttpParser::KeepAlive() const
 {
     auto it = mHttpRequestMap.find("Connection");
@@ -125,7 +135,7 @@ bool HttpParser::KeepAlive() const
         return false;
     }
 
-    if (it->second == "Close") {
+    if (it->second.StrCaseCmp("close") == 0) {
         return false;
     }
     return true;
