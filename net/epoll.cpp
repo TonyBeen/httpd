@@ -177,7 +177,6 @@ int Epoll::main_loop()
 
 void Epoll::ReadEventProcess(int fd)
 {
-    LOGI("%s()", __func__);
     LOG_ASSERT(fd > 0, "%s:%d %s()", __FILE__, __LINE__, __func__);
 
     uint8_t readBuf[READ_BUFSIZE] = {0};
@@ -265,8 +264,9 @@ void Epoll::ReadEventProcess(int fd)
         break;
     }
 
-    delEvent(fd);
-    LOGD("%s() end", __func__);
+    if (!parser.KeepAlive()) {
+        delEvent(fd);
+    }
 }
 
 bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &response)
