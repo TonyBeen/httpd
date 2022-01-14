@@ -6,17 +6,23 @@ CPPSRC += $(wildcard $(CURRENT_PATH)/net/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/http/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/thread/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/sql/*.cpp)
+CPPSRC += $(wildcard $(CURRENT_PATH)/util/*.cpp)
 
-OBJ := $(patsubst %.cpp, %.o, $(CPPSRC))
+CSRC += $(wildcard $(CURRENT_PATH)/util/*.c)
 
-httpd : $(OBJ)
+CPPOBJ := $(patsubst %.cpp, %.o, $(CPPSRC))
+COBJ := $(patsubst %.c, %.o, $(CSRC))
+
+httpd : $(CPPOBJ)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB)
-	-rm -rf $(OBJ)
+	-rm -rf $(CPPOBJ)
 
 %.o : %.cpp
 	$(CC) $^ -c -o $@ $(CPP_FLAGS) $(INCLUDE)
+%.o : %.c
+	g++ $^ -c -o $@ $(C_FLAGS) $(INCLUDE)
 
 .PHONY : httpd clean
 
 clean :
-	-rm -rf $(OBJ)
+	-rm -rf $(CPPOBJ)
