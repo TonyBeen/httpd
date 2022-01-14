@@ -60,7 +60,7 @@ Epoll::~Epoll()
     delete mMysqlDb;
 }
 
-// TODO: 第一次http请求时会导致无法回应，需要在此刷新才可以
+// TODO: 第一次http请求时会导致无法回应，需要再次刷新才可以
 bool Epoll::addEvent(int fd, const sockaddr_in &addr)
 {
     AutoLock<Mutex> lock(mEpollMutex);

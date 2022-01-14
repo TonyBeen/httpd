@@ -192,6 +192,41 @@ JsonParser::~JsonParser()
     }
 }
 
+std::vector<JsonMeta> JsonParser::GetValVecByKey(const String8 &key)
+{
+    std::vector<JsonMeta> ret;
+    std::multimap<String8, cJSON *>::iterator begin, end;
+
+    begin = mJsonMap.lower_bound(key);
+    end = mJsonMap.upper_bound(key);
+
+    for (auto it = begin; it != end; ++it) {
+        ret.push_back(JsonMeta(it->second));
+    }
+
+    return ret;
+}
+
+String8 JsonParser::GetStringValByKey(const String8 &key)
+{
+    auto it = mJsonMap.find(key);
+    if (it != mJsonMap.end() && cJSON_IsString(it->second)) {
+        return it->second->valuestring;
+    }
+
+    return "";
+}
+
+int JsonParser::GetIntValByKey(const String8 &key)
+{
+    auto it = mJsonMap.find(key);
+    if (it != mJsonMap.end() && cJSON_IsNumber(it->second)) {
+        return it->second->valueint;
+    }
+
+    return INT32_MIN;
+}
+
 /**
  * @brief 解析json
  * 

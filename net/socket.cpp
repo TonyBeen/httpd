@@ -7,11 +7,13 @@
 
 #include "socket.h"
 #include "config.h"
+#include "util/json.h"
 #include <log/log.h>
 #include <utils/Errors.h>
 #include <utils/exception.h>
 #include <fcntl.h>
 #include <atomic>
+#include <netdb.h>
 
 #define LOG_TAG "socket"
 #define LISTEN_SOCKET_NUM 512
@@ -295,9 +297,56 @@ int TcpServer::accept(sockaddr_in *addr)
                 epoll = it.second.get();
             }
         }
+
         LOGI("accept client %d, [%s:%u]", clientFd, inet_ntoa(tmp.sin_addr), ntohs(tmp.sin_port));
         LOG_ASSERT(epoll, "");
         epoll->addEvent(clientFd, tmp);
+
+        static String8 IPmsg;
+        static String8 apiIP;
+        String8 acceptIP = inet_ntoa(tmp.sin_addr);
+        // https://67ip.cn/check?ip=39.102.104.241&token=a6fa55815ce40d6b1c7b4c5519298516
+        hostent *host = gethostbyname("67ip.cn");
+        if (host != nullptr) {
+            char *tmp = host->h_addr_list[0];
+            apiIP = inet_ntoa(*(struct in_addr*)tmp);
+            try {
+                TcpClient tcpClient(443, apiIP);
+                if (tcpClient.connect() == 0) {
+                    static const char *requestBufFmt =
+                        "GET /check?ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516 HTTP/1.1\r\n"
+                        "Host: 67ip.cn\r\n"
+                        "Connection: keep-alive\r\n"
+                        "User-Agent: eular/httpd v1.0\r\n"
+                        "Pragma: no-cache\r\n"
+                        "Cache-Control: no-cache\r\n";
+                    char buf[1024] = {0};
+                    char recvBuf[4096] = {0};
+                    int n = snprintf(buf, sizeof(buf), requestBufFmt, acceptIP.c_str());
+                    if (tcpClient.send((const uint8_t *)buf, n) > 0) {
+                        n = tcpClient.recv((uint8_t *)recvBuf, sizeof(recvBuf));
+                        if (n > 0) {
+                            LOGD("recv from %s: %s", apiIP.c_str(), recvBuf);
+                            JsonParser jp(recvBuf);
+                            int ret = jp.GetIntValByKey("code");
+                            if (ret == 200) {
+                                LOGD("country: %s, province: %s, city: %s: service: %s",
+                                    jp.GetStringValByKey("data.country").c_str(),
+                                    jp.GetStringValByKey("data.province").c_str(),
+                                    jp.GetStringValByKey("data.city").c_str(),
+                                    jp.GetStringValByKey("data.service").c_str());
+                            }
+                        }
+                    } else {
+                        LOGD("send %s failed", apiIP.c_str());
+                    }
+                } else {
+                    LOGD("connect %s failed", apiIP.c_str());
+                }
+            } catch (const Exception &e) {
+                LOGW("what() %s", e.what());
+            }
+        }
     } else {
         LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
     }

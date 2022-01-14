@@ -74,20 +74,9 @@ public:
     JsonParser(const String8 &json);
     ~JsonParser();
 
-    std::vector<JsonMeta> GetValByKey(const String8 &key)
-    {
-        std::vector<JsonMeta> ret;
-        std::multimap<String8, cJSON *>::iterator begin, end;
-
-        begin = mJsonMap.lower_bound(key);
-        end = mJsonMap.upper_bound(key);
-
-        for (auto it = begin; it != end; ++it) {
-            ret.push_back(JsonMeta(it->second));
-        }
-
-        return ret;
-    }
+    std::vector<JsonMeta> GetValVecByKey(const String8 &key);
+    String8 GetStringValByKey(const String8 &key);
+    int GetIntValByKey(const String8 &key);
 
 private:
     void Parse(String8 perfix, cJSON *node);

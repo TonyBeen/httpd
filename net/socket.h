@@ -132,6 +132,7 @@ protected:
 
 class TcpClient : public ClientBase {
 public:
+    TcpClient() {}
     TcpClient(uint16_t destPort, const String8& destAddr);
     virtual ~TcpClient();
 
