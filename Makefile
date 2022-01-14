@@ -1,4 +1,4 @@
-include ./maketest.mk
+include define.mk
 
 CPPSRC := $(wildcard $(CURRENT_PATH)/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/util/*.cpp)
