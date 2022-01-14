@@ -387,12 +387,12 @@ int TcpClient::reset(uint16_t destPort, const String8& destAddr)
 
 ssize_t TcpClient::recv(uint8_t *buf, uint32_t bufSize)
 {
-
+    return ::recv(mSockFd, buf, bufSize, 0);
 }
 
 ssize_t TcpClient::send(const uint8_t *buf, uint32_t bufSize)
 {
-
+    return ::send(mSockFd, buf, bufSize, 0);
 }
 
 void TcpClient::destroy()
