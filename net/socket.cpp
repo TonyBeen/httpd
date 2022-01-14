@@ -336,6 +336,7 @@ int TcpServer::accept_loop()
         }
     }
 
+    close(epollfd);
     LOGD("%s() end", __func__);
     return Thread::THREAD_WAITING;
 }
