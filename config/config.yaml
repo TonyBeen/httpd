@@ -17,4 +17,4 @@ html:
 fiber:
   stack_size: 1048576 # 1024 * 1024
 epollvec:
-  size: 5
+  size: 4
