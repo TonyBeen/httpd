@@ -103,29 +103,47 @@ private:
 /**
  * @brief 套接字客户端类
  */
-// class ClientBase
-// {
-// public:
-//     ClientBase(uint16_t destPort, const char *destAddr);
-//     virtual ~ClientBase() {}
+class ClientBase {
+public:
+    ClientBase() {}
+    ClientBase(uint16_t destPort, const String8& destAddr) :
+        mDestPort(destPort),
+        mDestAddr(destAddr),
+        mSockFd(-1) {}
+    virtual ~ClientBase() {}
 
-//     void        setDestPort(uint16_t port) { mDestPort = port; }
-//     void        setDestAddr(const char *destAddr) { mDestAddr = destAddr; }
-//     void        setDestAddr(const String8& destAddr) { mDestAddr = destAddr; }
-//     uint16_t    getPort() const { return mDestPort; }
-//     String8     getAddr() const { return mDestAddr; }
+    void        setDestPort(uint16_t port) { mDestPort = port; }
+    void        setDestAddr(const String8& destAddr) { mDestAddr = destAddr; }
+    uint16_t    getPort() const { return mDestPort; }
+    String8     getAddr() const { return mDestAddr; }
 
-//     virtual int connect() = 0;
+    virtual int connect() = 0;
+    virtual int reset(uint16_t destPort, const String8& destAddr) = 0;
 
-//     virtual ssize_t recv() = 0;
-//     virtual ssize_t send() = 0;
+    virtual ssize_t recv(uint8_t *buf, uint32_t bufSize) = 0;
+    virtual ssize_t send(const uint8_t *buf, uint32_t bufSize) = 0;
 
-// protected:
-//     uint16_t    mDestPort;
-//     String8     mDestAddr;
-//     sockaddr_in mSockAddr;
-//     socklen_t   mSockLen;
-// };
+protected:
+    uint16_t    mDestPort;
+    String8     mDestAddr;
+
+    int         mSockFd;
+};
+
+class TcpClient : public ClientBase {
+public:
+    TcpClient(uint16_t destPort, const String8& destAddr);
+    virtual ~TcpClient();
+
+    virtual int connect() override;
+    virtual int reset(uint16_t destPort, const String8& destAddr) override;
+
+    virtual ssize_t recv(uint8_t *buf, uint32_t bufSize) override;
+    virtual ssize_t send(const uint8_t *buf, uint32_t bufSize) override;
+
+private:
+    void destroy();
+};
 
 } // namespace eular
 

@@ -340,4 +340,66 @@ int TcpServer::accept_loop()
     return Thread::THREAD_WAITING;
 }
 
+TcpClient::TcpClient(uint16_t destPort, const String8& destAddr) :
+    ClientBase(destPort, destAddr)
+{
+    mSockFd = socket(AF_INET, SOCK_STREAM, 0);
+    if (mSockFd < 0) {
+        throw Exception(String8::format("socket error. [%d,%s]", errno, strerror(errno)));
+    }
+}
+
+TcpClient::~TcpClient()
+{
+    destroy();
+}
+
+int TcpClient::connect()
+{
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(mDestPort);
+    addr.sin_addr.s_addr = inet_addr(mDestAddr.c_str());
+
+    return ::connect(mSockFd, (struct sockaddr *)&addr, sizeof(addr));
+}
+
+int TcpClient::reset(uint16_t destPort, const String8& destAddr)
+{
+    destroy();
+    mSockFd = socket(AF_INET, SOCK_STREAM, 0);
+    if (mSockFd < 0) {
+        return mSockFd;
+    }
+
+    struct sockaddr_in addr;
+    memset(&addr, 0, sizeof(addr));
+
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(destPort);
+    addr.sin_addr.s_addr = inet_addr(destAddr.c_str());
+
+    return ::connect(mSockFd, (struct sockaddr *)&addr, sizeof(addr));
+}
+
+ssize_t TcpClient::recv(uint8_t *buf, uint32_t bufSize)
+{
+
+}
+
+ssize_t TcpClient::send(const uint8_t *buf, uint32_t bufSize)
+{
+
+}
+
+void TcpClient::destroy()
+{
+    if (mSockFd > 0) {
+        close(mSockFd);
+        mSockFd = -1;
+    }
+}
+
 } // namespace eular
