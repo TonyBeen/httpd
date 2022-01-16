@@ -174,6 +174,11 @@ error:
     return false;
 }
 
+JsonParser::JsonParser()
+{
+    mJsonRoot = nullptr;
+}
+
 JsonParser::JsonParser(const String8 &json) :
     mJsonRoot(nullptr)
 {
@@ -190,6 +195,29 @@ JsonParser::~JsonParser()
     if (mJsonRoot) {
         cJSON_Delete(mJsonRoot);
     }
+}
+
+bool JsonParser::Parse(const String8 &json, bool hasHttpResponse)
+{
+    String8 willParser = json;
+    if (hasHttpResponse) {
+        int index = willParser.find("\r\n\r\n");
+        if (index > 0) {
+            willParser = String8(json.c_str() + index + 4);
+            LOGD("%s()\n%s", __func__, willParser.c_str());
+        }
+    }
+
+    mJsonRoot = cJSON_Parse(willParser.c_str());
+    if (mJsonRoot == nullptr) {
+        return false;
+    }
+
+    mJsonMap.clear();
+
+    Parse("", mJsonRoot);
+
+    return true;
 }
 
 std::vector<JsonMeta> JsonParser::GetValVecByKey(const String8 &key)

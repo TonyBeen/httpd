@@ -151,7 +151,7 @@ int Epoll::main_loop()
             LOGE("epoll_wait error. errno = %d, str: %s", errno, strerror(errno));
             break;
         }
-        LOGI("epoll_wait events = %d", nRet);
+        LOGD("epoll_wait events = %d", nRet);
         for (int i = 0; i < nRet; ++i) {
             const epoll_event &event = eventAll[i];
             int cfd = event.data.fd;

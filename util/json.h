@@ -71,8 +71,19 @@ struct JsonMeta {
 
 class JsonParser {
 public:
+    JsonParser();
     JsonParser(const String8 &json);
     ~JsonParser();
+
+    /**
+     * @brief 解析字符串json，如果字符串包含http响应，则hasHttpResponse为true
+     * 
+     * @param json 要解析的json字符串
+     * @param hasHttpResponse 是否存在http响应或请求
+     * @return true 解析成功
+     * @return false 失败
+     */
+    bool Parse(const String8 &json, bool hasHttpResponse = false);
 
     std::vector<JsonMeta> GetValVecByKey(const String8 &key);
     String8 GetStringValByKey(const String8 &key);
@@ -83,9 +94,7 @@ private:
 
 private:
     std::multimap<String8, cJSON *>      mJsonMap;
-
     cJSON *mJsonRoot;
-    friend class JsonGenerator;
 };
 
 } // namespace eular

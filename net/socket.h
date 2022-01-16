@@ -75,31 +75,6 @@ protected:
     std::map<uint32_t, sockaddr_in>     mClientFdMap;
 };
 
-class TcpServer : public Socket
-{
-public:
-    TcpServer(uint16_t, const String8 &);
-    virtual ~TcpServer();
-
-    virtual int accept(sockaddr_in *) override;
-    virtual int accept_loop();
-
-    class Compare {
-    public:
-        bool operator()(const std::shared_ptr<Thread> &left, const std::shared_ptr<Thread> right)
-        {
-            if (left.get() < right.get()) {
-                return true;
-            }
-            return false;
-        }
-    };
-    
-private:
-    std::map<std::shared_ptr<Thread>, std::shared_ptr<Epoll>, TcpServer::Compare> mEpollProcMap;
-};
-
-
 /**
  * @brief 套接字客户端类
  */
@@ -132,7 +107,7 @@ protected:
 
 class TcpClient : public ClientBase {
 public:
-    TcpClient() {}
+    TcpClient();
     TcpClient(uint16_t destPort, const String8& destAddr);
     virtual ~TcpClient();
 
@@ -142,8 +117,39 @@ public:
     virtual ssize_t recv(uint8_t *buf, uint32_t bufSize) override;
     virtual ssize_t send(const uint8_t *buf, uint32_t bufSize) override;
 
+    bool isConnected() const { mIsConnected == 0; }
+
 private:
     void destroy();
+
+    int mIsConnected;
+};
+
+class TcpServer : public Socket
+{
+public:
+    TcpServer(uint16_t, const String8 &);
+    virtual ~TcpServer();
+
+    virtual int accept(sockaddr_in *) override;
+    virtual int accept_loop();
+
+    class Compare {
+    public:
+        bool operator()(const std::shared_ptr<Thread> &left, const std::shared_ptr<Thread> right)
+        {
+            if (left.get() < right.get()) {
+                return true;
+            }
+            return false;
+        }
+    };
+    
+private:
+    std::map<std::shared_ptr<Thread>, std::shared_ptr<Epoll>, TcpServer::Compare> mEpollProcMap;
+
+    TcpClient mIPLocationAPI;
+    String8   mIpLocationAPIHost;   // 查询接口IP
 };
 
 } // namespace eular
