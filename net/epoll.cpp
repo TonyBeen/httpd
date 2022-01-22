@@ -8,6 +8,7 @@
 #include "epoll.h"
 #include "config.h"
 #include "http/http.h"
+#include "util/json.h"
 #include <utils/exception.h>
 #include <log/log.h>
 #include <errno.h>
@@ -60,7 +61,6 @@ Epoll::~Epoll()
     delete mMysqlDb;
 }
 
-// TODO: 第一次http请求时会导致无法回应，需要再次刷新才可以
 bool Epoll::addEvent(int fd, const sockaddr_in &addr)
 {
     AutoLock<Mutex> lock(mEpollMutex);
@@ -304,6 +304,10 @@ bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &r
     if (res->getDataCount() == 1) { // 防止sql注入
         // 登录成功
         LOGD("user name: %s login", username.c_str());
+        JsonGenerator json;
+        json.AddNode("code", 2);
+        json.AddNode("message", "/home.html");
+        
         response.setFilePath(root + "home.html");
         response.setHttpStatus(HttpStatus::OK);
         return true;
