@@ -72,7 +72,6 @@ int Application::init(int argc, char **argv)
     bool consoleOut = target.contains("consoleout");
     InitLog(lev, sync);
     if (fileOut) {
-        LOGD("addOutputNode FILEOUT");
         addOutputNode(LogWrite::FILEOUT);
     }
     if (consoleOut) {

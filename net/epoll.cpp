@@ -406,10 +406,11 @@ void Epoll::SendToClient(const HttpResponse &httpRes)
     int readedSize = 0;
     while (true) {
         readedSize = ::read(fileDes, buf, READ_BUFSIZE);
-        if (readedSize <= 0) {
-            if (errno != EAGAIN) {
-                LOGE("%s() read error %d, errstr: %s", __func__, errno, strerror(errno));
-            }
+        if (readedSize == 0) {
+            break;
+        }
+        if (readedSize < 0) {
+            LOGE("%s() read error %d, errstr: %s", __func__, errno, strerror(errno));
             break;
         }
         ret = ::send(clientSock, buf, readedSize, 0);
