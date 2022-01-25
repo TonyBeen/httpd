@@ -1,6 +1,6 @@
 log:
   level: debug
-  target: stdout|fileout
+  target: stdout|fileout|consoleout
   sync: true
 tcp:
   port: 80
