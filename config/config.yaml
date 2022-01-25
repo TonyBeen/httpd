@@ -1,6 +1,6 @@
 log:
   level: debug
-  target: stdout|fileout|consoleout
+  target: stdout|fileout
   sync: true
 tcp:
   port: 80
@@ -10,7 +10,7 @@ threadpool:
   max_thread_num: 8
 mysql:
   user: mysql
-  password: 123456
+  password: ******
   database: userdb
 html:
   root: /home/hsz/VScode/www/html/
