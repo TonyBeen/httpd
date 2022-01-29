@@ -46,7 +46,6 @@ public:
 
 protected:
     cJSON *CopyJson(const cJSON *other);
-    cJSON *CopyObject(const cJSON *other);
 
 private:
     std::map<String8, int>      mIntegerMap;    // 整型
@@ -102,6 +101,7 @@ private:
 private:
     std::multimap<String8, cJSON *>      mJsonMap;
     cJSON *mJsonRoot;
+    friend class JsonGenerator;
 };
 
 } // namespace eular

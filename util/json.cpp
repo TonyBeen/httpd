@@ -35,7 +35,15 @@ JsonGenerator::~JsonGenerator()
 
 JsonGenerator &JsonGenerator::operator=(const JsonGenerator &json)
 {
-
+    String8 otherJson = json.dump();
+    JsonParser jp;
+    if (jp.Parse(otherJson)) {
+        this->mJsonRoot = jp.mJsonRoot;
+        jp.mJsonRoot = nullptr;
+    }
+    this->mStringMap = json.mStringMap;
+    this->mIntegerMap = json.mIntegerMap;
+    this->mDoubleMap = json.mDoubleMap;
 }
 
 bool JsonGenerator::AddNode(const String8 &key, const String8 &val)
@@ -186,26 +194,6 @@ error:
 }
 
 cJSON *JsonGenerator::CopyJson(const cJSON *other)
-{
-    static thread_local cJSON *root = cJSON_CreateObject();
-    static thread_local cJSON *temp = root;
-    if (!root) {
-        return nullptr;
-    }
-    
-    switch (other->type) {
-    case cJSON_String:
-        temp->string = strdup(other->string);
-        break;
-    case cJSON_Object:
-        break;
-    default:
-        break;
-    }
-
-}
-
-cJSON *JsonGenerator::CopyObject(const cJSON *other)
 {
 
 }

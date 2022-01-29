@@ -69,4 +69,5 @@ $(TEST_DIR)/testjson : $(testjson_src)
 
 clean_test :
 	-rm -rf $(TEST_DIR)/testconfig $(TEST_DIR)/testapp $(TEST_DIR)/testfiber $(TEST_DIR)/testsocket \
-	$(TEST_DIR)/testaddress $(TEST_DIR)/testhttp $(TEST_DIR)/testthread $(TEST_DIR)/testthreadpool
+	$(TEST_DIR)/testaddress $(TEST_DIR)/testhttp $(TEST_DIR)/testthread $(TEST_DIR)/testthreadpool \
+	$(TEST_DIR)/testjson
