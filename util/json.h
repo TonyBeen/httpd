@@ -19,7 +19,10 @@ namespace eular {
 class JsonGenerator {
 public:
     JsonGenerator();
+    JsonGenerator(const JsonGenerator &json);
     ~JsonGenerator();
+
+    JsonGenerator &operator=(const JsonGenerator &json);
 
     enum class JSONTYPE {
         INTEGER = 0,

@@ -14,13 +14,14 @@
 #include <fcntl.h>
 #include <atomic>
 #include <netdb.h>
+#include <list>
 
 #define LOG_TAG "socket"
 #define LISTEN_SOCKET_NUM 512
 
 namespace eular {
-
-static uint32_t gSizeOfEpollVec  = 0;
+static uint32_t     gSizeOfEpollVec  = 0;
+std::list<String8>  gLoginUserInfo;         // 登录用户信息
 
 static std::atomic<uint32_t> gCountUdpFd = {3};
 Socket::Socket() // : Socket(TCP, IPv4, 80, "")
@@ -394,7 +395,7 @@ int TcpServer::accept(sockaddr_in *addr)
     return clientFd;
 }
 
-// TODO: 第一请求会接收一个全为0的IP
+// TODO: 第一次请求会接收一个全为0的IP
 int TcpServer::accept_loop()
 {
     epoll_event ev;
@@ -409,9 +410,9 @@ int TcpServer::accept_loop()
     epoll_event events[2];
 
     while (true) {
-        int nRet = epoll_wait(epollfd, events, 2, -1);
+        int nRet = epoll_wait(epollfd, events, 2, 5000);
         if (nRet == 0) {
-            LOGD("%s() epoll_wait return 0. errno %d", __func__, errno);
+            // 处理登录事件
             continue;
         }
         if (nRet > 0) {

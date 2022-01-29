@@ -22,6 +22,22 @@
 #include <map>
 
 namespace eular {
+
+struct LoginInfo {
+    int             fd;
+    String8         userName;
+    String8         loginIP;
+    time_t          loginTime;
+
+    LoginInfo &operator=(const LoginInfo &info)
+    {
+        this->fd        =  info.fd;
+        this->userName  =  info.userName;
+        this->loginIP   =  info.loginIP;
+        this->loginTime =  info.loginTime;
+    }
+};
+
 class Epoll
 {
     DISALLOW_COPY_AND_ASSIGN(Epoll);

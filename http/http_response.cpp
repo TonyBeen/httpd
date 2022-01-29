@@ -15,7 +15,7 @@ static std::map<String8, String8> gDefaultReponse = {
 };
 
 
-void HttpResponse::addToResBody(const String8 &key, const String8 &val, bool forceCover)
+void HttpResponse::addContent(const String8 &key, const String8 &val, bool forceCover)
 {
     if (isLocked) {
         return;
@@ -26,7 +26,7 @@ void HttpResponse::addToResBody(const String8 &key, const String8 &val, bool for
     mHttpResBody[key] = val;
 }
 
-void HttpResponse::delFromBody(const String8 &key)
+void HttpResponse::delContent(const String8 &key)
 {
     if (isLocked) {
         return;

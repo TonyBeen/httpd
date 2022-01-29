@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <netinet/tcp.h>
+#include <list>
 
 #define LOG_TAG "epoll"
 
@@ -31,6 +32,7 @@ static String8  gMysqlUser;
 static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 static const String8 &gIndexHtml = "index.html";
+thread_local std::list<LoginInfo>     gUserLoginQueue;
 
 Epoll::Epoll() :
     mEpollFd(0)
@@ -217,11 +219,11 @@ void Epoll::ReadEventProcess(int fd)
     HttpResponse response(fd);
 
     response.setHttpVersion(version);
-    response.addToResBody("Server", HttpResponse::GetDefaultResponseByKey("Server"));
+    response.addContent("Server", HttpResponse::GetDefaultResponseByKey("Server"));
     if (parser.KeepAlive()) {
-        response.addToResBody("Connection", "keep-alive");
+        response.addContent("Connection", "keep-alive");
     } else {
-        response.addToResBody("Connection", "close");
+        response.addContent("Connection", "close");
     }
 
     switch (method) {
@@ -304,10 +306,20 @@ bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &r
     if (res->getDataCount() == 1) { // 防止sql注入
         // 登录成功
         LOGD("user name: %s login", username.c_str());
+        // 获取用户登录信息
+        LoginInfo info;
+        info.fd = response.getClientSocket();
+        auto it = mClientMap.find(info.fd);
+        LOG_ASSERT(it != mClientMap.end(), "fd must exist in client map");
+        info.userName = username;
+        info.loginIP = inet_ntoa(it->second.sin_addr);
+        time(&info.loginTime);
+        gUserLoginQueue.push_back(info);
+
         JsonGenerator json;
         json.AddNode("code", 2);
         json.AddNode("message", "/home.html");
-        
+
         response.setFilePath(root + "home.html");
         response.setHttpStatus(HttpStatus::OK);
         return true;
@@ -321,8 +333,8 @@ end:
             clock_gettime(CLOCK_REALTIME, &t);
         }
         static const String8 &time = String8::format("%ld", t.tv_sec);
-        response.addToResBody("Last-Modified", time.c_str());
-        response.addToResBody("Cache-Control", "public, max-age=0");
+        response.addContent("Last-Modified", time.c_str());
+        response.addContent("Cache-Control", "public, max-age=0");
         response.lock();
     } else {
         response.setHttpStatus(HttpStatus::OK);

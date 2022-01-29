@@ -21,11 +21,21 @@ JsonGenerator::JsonGenerator() :
     }
 }
 
+JsonGenerator::JsonGenerator(const JsonGenerator &json)
+{
+    *this = json;
+}
+
 JsonGenerator::~JsonGenerator()
 {
     if (mJsonRoot) {
         cJSON_Delete(mJsonRoot);
     }
+}
+
+JsonGenerator &JsonGenerator::operator=(const JsonGenerator &json)
+{
+
 }
 
 bool JsonGenerator::AddNode(const String8 &key, const String8 &val)
