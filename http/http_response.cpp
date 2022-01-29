@@ -98,7 +98,7 @@ void HttpResponse::setJson(const JsonGenerator &j)
 
     mJson = j;
     mHttpResBody.emplace(std::make_pair("Content-Type", "application/json"));
-    mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", j.dump().length())));
+    mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%zu", j.dump().length())));
 }
 
 void HttpResponse::dump(String8 &msg)
