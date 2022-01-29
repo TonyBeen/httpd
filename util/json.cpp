@@ -185,6 +185,31 @@ error:
     return false;
 }
 
+cJSON *JsonGenerator::CopyJson(const cJSON *other)
+{
+    static thread_local cJSON *root = cJSON_CreateObject();
+    static thread_local cJSON *temp = root;
+    if (!root) {
+        return nullptr;
+    }
+    
+    switch (other->type) {
+    case cJSON_String:
+        temp->string = strdup(other->string);
+        break;
+    case cJSON_Object:
+        break;
+    default:
+        break;
+    }
+
+}
+
+cJSON *JsonGenerator::CopyObject(const cJSON *other)
+{
+
+}
+
 JsonParser::JsonParser()
 {
     mJsonRoot = nullptr;
@@ -227,7 +252,9 @@ bool JsonParser::Parse(const String8 &json, bool hasHttpResponse)
     mJsonMap.clear();
 
     Parse("", mJsonRoot);
-
+    for (auto it : mJsonMap) {
+        LOGD("%s", it.first.c_str());
+    }
     return true;
 }
 
@@ -295,18 +322,26 @@ int JsonParser::GetIntValByKey(const String8 &key)
  */
 void JsonParser::Parse(String8 perfix, cJSON *node)
 {
+    if (!node) {
+        return;
+    }
+
     String8 key = node->string ? node->string : "";
     if (cJSON_IsObject(node) == false) {
-        mJsonMap.insert(std::make_pair(perfix + key, node));
+        mJsonMap.insert(std::make_pair(perfix.isEmpty() ? key : perfix + "." + key, node));
     }
+
     if (node->next) {
         Parse(perfix, node->next);
     }
 
     if (node->child) {
         String8 temp = node->string ? node->string : "";
-        Parse(perfix.isEmpty() ? temp :
-            perfix + "." + temp, node->child);
+        cJSON *nodeTemp = node->child;
+        if (cJSON_IsObject(nodeTemp)) {
+            nodeTemp = node->child->child;
+        }
+        Parse(perfix.isEmpty() ? temp : perfix + "." + temp, nodeTemp);
     }
 }
 

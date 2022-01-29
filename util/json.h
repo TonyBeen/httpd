@@ -44,6 +44,10 @@ public:
     String8 dump() const;
     bool KeepFile(const String8 &path) const;
 
+protected:
+    cJSON *CopyJson(const cJSON *other);
+    cJSON *CopyObject(const cJSON *other);
+
 private:
     std::map<String8, int>      mIntegerMap;    // 整型
     std::map<String8, String8>  mStringMap;     // 字符串

@@ -1,7 +1,6 @@
 include define.mk
 
 CPPSRC := $(wildcard $(CURRENT_PATH)/*.cpp)
-CPPSRC += $(wildcard $(CURRENT_PATH)/util/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/net/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/http/*.cpp)
 CPPSRC += $(wildcard $(CURRENT_PATH)/thread/*.cpp)
