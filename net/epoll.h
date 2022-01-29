@@ -55,8 +55,9 @@ protected:
 
     virtual void ReadEventProcess(int fd);
     virtual bool ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &response);
-    virtual void SendToClient(const HttpResponse &httpRes);
-    virtual void SendToClient(int fd, const String8 &responseHeader, const String8 &filePath);
+    virtual void SendResponse(const HttpResponse &httpRes);
+    virtual void SendFile(int fd, const String8 &responseHeader, const String8 &filePath);
+    virtual void SendJson(int fd, const String8 &header, const String8 &json);
     virtual void Send404(int fd);
     virtual void Send400(int fd);
     virtual void LoadConfig();

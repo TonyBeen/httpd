@@ -23,8 +23,9 @@ public:
         JSON = 1,   // 响应为json数据
         XML  = 2,   // 响应为xml数据
         YAML = 3,   // 响应为yaml数据
+        UNKNOW
     };
-    HttpResponse(int fd) : mClientFd(fd), isLocked(false) {}
+    HttpResponse(int fd) : mClientFd(fd), isLocked(false), mType(UNKNOW) {}
     ~HttpResponse() {}
     HttpResponse(const HttpResponse &v) = delete;
     HttpResponse &operator=(const HttpResponse &v) = delete;
@@ -39,7 +40,7 @@ public:
     void addContent(const String8 &key, const String8 &val, bool forceCover = false);
     void delContent(const String8 &key);
     void setFilePath(const String8 &fp);
-    void setJson(const JsonGenerator &j) { mJson = j; mType = JSON; }
+    void setJson(const JsonGenerator &j);
 
     const int32_t       &getClientSocket() const { return mClientFd; }
     const String8       &getFilePath() const { return mWillSendFilePath; }

@@ -6,7 +6,10 @@
  ************************************************************************/
 
 #include "http_response.h"
+#include <log/log.h>
 #include <utils/utils.h>
+
+#define LOG_TAG "HttpResponse"
 
 namespace eular {
 
@@ -85,6 +88,17 @@ void HttpResponse::setFilePath(const String8 &fp)
     const String8 &fileExten = String8(fp.c_str() + dotIdx + 1);
     mHttpResBody.emplace(std::make_pair("Content-Type", String8::format("%s", GetContentTypeByFileExten(fileExten).c_str())));
     mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", GetFileLength(mWillSendFilePath))));
+}
+
+void HttpResponse::setJson(const JsonGenerator &j)
+{
+    if (isLocked) {
+        return;
+    }
+
+    mJson = j;
+    mHttpResBody.emplace(std::make_pair("Content-Type", "application/json"));
+    mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", j.dump().length())));
 }
 
 void HttpResponse::dump(String8 &msg)

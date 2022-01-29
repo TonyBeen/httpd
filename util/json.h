@@ -41,7 +41,7 @@ public:
 
     bool DelNode(const String8 &key, JSONTYPE type);
 
-    std::shared_ptr<char> dump() const;
+    String8 dump() const;
     bool KeepFile(const String8 &path) const;
 
 private:

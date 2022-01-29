@@ -148,14 +148,15 @@ bool JsonGenerator::DelNode(const String8 &key, JSONTYPE type)
     return true;
 }
 
-std::shared_ptr<char> JsonGenerator::dump() const
+String8 JsonGenerator::dump() const
 {
-    std::shared_ptr<char> ptr(cJSON_Print(mJsonRoot), [](char *addr) {
-        if (addr) {
-            cJSON_free(addr);
-        }
-    });
-    return ptr;
+    char *ptr = cJSON_Print(mJsonRoot);
+    String8 ret = ptr;
+    if (ptr) {
+        free(ptr);
+    }
+
+    return std::move(ret);
 }
 
 bool JsonGenerator::KeepFile(const String8 &path) const

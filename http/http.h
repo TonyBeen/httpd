@@ -104,6 +104,7 @@ namespace eular {
     XX(pdf,     application/pdf)            \
     XX(png,     image/png)                  \
     XX(ico,     image/x-icon)               \
+    XX(json,    application/json)           \
 
 #define HTTP_VERSION_MAP(XX)        \
     XX(10, HTTPV10, HTTP/1.0)       \

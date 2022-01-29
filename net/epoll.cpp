@@ -230,14 +230,14 @@ void Epoll::ReadEventProcess(int fd)
     case HttpMethod::GET:
         // if (url == "/login") {
         //     ProcessLogin(url, parser, response);
-        //     SendToClient(response);
+        //     SendResponse(response);
         //     break;
         // }
 
         if (url == "/") {
             response.setFilePath(root + gIndexHtml);
             response.setHttpStatus(HttpStatus::OK);
-            SendToClient(response);
+            SendResponse(response);
             break;
         }
 
@@ -254,14 +254,14 @@ void Epoll::ReadEventProcess(int fd)
 
             response.setFilePath(root + url);
             response.setHttpStatus(HttpStatus::OK);
-            SendToClient(response);
+            SendResponse(response);
         }
 
         break;
     case HttpMethod::POST:
         if (url == "/login") {
             ProcessLogin(url, parser, response);
-            SendToClient(response);
+            SendResponse(response);
             break;
         }
 
@@ -316,12 +316,17 @@ bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &r
         time(&info.loginTime);
         gUserLoginQueue.push_back(info);
 
-        JsonGenerator json;
-        json.AddNode("code", 2);
-        json.AddNode("message", "/home.html");
-
-        response.setFilePath(root + "home.html");
-        response.setHttpStatus(HttpStatus::OK);
+        try {
+            JsonGenerator json;
+            json.AddNode("code", 2);
+            json.AddNode("message", "/home.html");
+            response.setJson(json);
+            response.setHttpStatus(HttpStatus::OK);
+        } catch (const Exception &e) {
+            LOGE("%s() catch throw. %s", __func__, e.what());
+            //response.setFilePath(root + "home.html");
+            response.setHttpStatus(HttpStatus::INTERNAL_SERVER_ERROR);
+        }
         return true;
     }
 
@@ -344,9 +349,9 @@ end:
     return false;
 }
 
-void Epoll::SendToClient(int fd, const String8 &responseHeader, const String8 &filePath)
+void Epoll::SendFile(int fd, const String8 &responseHeader, const String8 &filePath)
 {
-    LOGD("response \n%s", responseHeader.c_str());
+    LOGD("response: \n%s", responseHeader.c_str());
     LOGD("filePath: %s", filePath.c_str());
 
     struct stat st = {0};
@@ -388,48 +393,54 @@ void Epoll::SendToClient(int fd, const String8 &responseHeader, const String8 &f
     LOGD("%s() end", __func__);
 }
 
-void Epoll::SendToClient(const HttpResponse &httpRes)
+void Epoll::SendJson(int fd, const String8 &header, const String8 &json)
+{
+    LOGD("response: \n%s", header.c_str());
+    LOGD("json: \n%s", json.c_str());
+
+    int ret = ::send(fd, header.c_str(), header.length(), 0);
+    if (ret <= 0) {
+        if (errno == EAGAIN) {
+            if (::send(fd, header.c_str(), header.length(), 0) <= 0) {
+                return;
+            }
+        } else {
+            LOGE("send error %d, errstr: %s", errno, strerror(errno));
+            return;
+        }
+    }
+
+    ret = ::send(fd, json.c_str(), json.length(), 0);
+    if (ret <= 0) {
+        if (errno == EAGAIN) {
+            ::send(fd, json.c_str(), json.length(), 0);
+        } else {
+            LOGE("send error %d, errstr: %s", errno, strerror(errno));
+        }
+    }
+}
+
+void Epoll::SendResponse(const HttpResponse &httpRes)
 {
     int clientSock = httpRes.getClientSocket();
     String8 httpHdr = httpRes.CreateHttpReponseHeader() + httpRes.CreateHttpReponseBody();
     LOGD("response \n%s", httpHdr.c_str());
 
-    const String8 &filePath = httpRes.getFilePath();
-    if (filePath.length() == 0) {
-        int ret = ::send(clientSock, httpHdr.c_str(), httpHdr.length(), 0);
-        if (ret <= 0) {
-            LOGE("%s() send error. errno %d, %s", __func__, errno, strerror(errno));
-        }
-        return;
-    }
+    HttpResponse::ResponseType type = httpRes.getResponseType();
 
-    int fileDes = ::open(filePath.c_str(), O_RDONLY);
-    if (fileDes < 0) {
-        LOGD("open file %s failed. send404.", filePath.c_str());
-        Send404(clientSock);
-        return;
-    }
-    int ret = ::send(clientSock, httpHdr.c_str(), httpHdr.length(), 0);
-    if (ret <= 0) {
-        LOGE("%s() send error. errno %d, %s", __func__, errno, strerror(errno));
-        return;
-    }
-    char buf[READ_BUFSIZE];
-    int readedSize = 0;
-    while (true) {
-        readedSize = ::read(fileDes, buf, READ_BUFSIZE);
-        if (readedSize == 0) {
-            break;
-        }
-        if (readedSize < 0) {
-            LOGE("%s() read error %d, errstr: %s", __func__, errno, strerror(errno));
-            break;
-        }
-        ret = ::send(clientSock, buf, readedSize, 0);
-        if (ret < 0) {
-            LOGE("send error %d, errstr: %s", errno, strerror(errno));
-            break;
-        }
+    switch (type) {
+    case HttpResponse::ResponseType::FILE:
+        SendFile(clientSock, httpHdr, httpRes.getFilePath());
+        break;
+    case HttpResponse::ResponseType::JSON:
+
+        break;
+    case HttpResponse::ResponseType::XML:
+        break;
+    case HttpResponse::ResponseType::YAML:
+        break;
+    default:
+        break;
     }
 }
 
