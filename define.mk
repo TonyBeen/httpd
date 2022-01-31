@@ -19,7 +19,6 @@ TEST_DIR = $(CURRENT_PATH)/test
 TEST_INCLUDE_PATH = -I$(CURRENT_PATH)
 
 testconfig_src := $(TEST_DIR)/test_config.cc config.cpp
-testapp_src := $(TEST_DIR)/test_app.cc application.cpp config.cpp $(NET_DIR)/socket.cpp $(HTTP_DIR)/http_parser.cpp $(HTTP_DIR)/http_response.cpp $(NET_DIR)/epoll.cpp
 testfiber_src := $(TEST_DIR)/test_fiber.cc fiber.cpp config.cpp
 testsocket_src := $(TEST_DIR)/test_socket.cc $(NET_DIR)/socket.cpp
 testaddress_src := $(TEST_DIR)/test_address.cc $(NET_DIR)/address.cpp
@@ -29,9 +28,10 @@ testthreadpool_src := $(TEST_DIR)/test_threadpool.cc $(THREAD_DIR)/thread.cpp $(
 testmysqlpool_src := $(TEST_DIR)/test_mysqlpool.cc $(SQL_DIR)/mysql.cpp $(SQL_DIR)/mysqlpool.cpp
 testjson_src := $(TEST_DIR)/test_json.cc $(UTIL_DIR)/json.cpp $(UTIL_DIR)/cjson.cpp
 
+default_make: httpd
+
 test_all :
 	make $(TEST_DIR)/testconfig
-	make $(TEST_DIR)/testapp
 	make $(TEST_DIR)/testfiber
 	make $(TEST_DIR)/testsocket
 	make $(TEST_DIR)/testaddress
@@ -45,8 +45,6 @@ testjson:
 	make $(TEST_DIR)/testjson
 
 $(TEST_DIR)/testconfig : $(testconfig_src)
-	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
-$(TEST_DIR)/testapp : $(testapp_src)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
 $(TEST_DIR)/testfiber : $(testfiber_src)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
@@ -65,7 +63,7 @@ $(TEST_DIR)/testmysqlpool : $(testmysqlpool_src)
 $(TEST_DIR)/testjson : $(testjson_src)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB) $(CPP_FLAGS) $(TEST_INCLUDE_PATH)
 
-.PHONY: test_all clean_test
+.PHONY: test_all clean_test default_make
 
 clean_test :
 	-rm -rf $(TEST_DIR)/testconfig $(TEST_DIR)/testapp $(TEST_DIR)/testfiber $(TEST_DIR)/testsocket \

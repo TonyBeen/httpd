@@ -9,6 +9,7 @@
 #define __ADDRESS_H__
 
 #include <utils/string8.h>
+#include <netinet/in.h>
 #include <memory>
 
 /**

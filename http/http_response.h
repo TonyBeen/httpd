@@ -44,10 +44,10 @@ public:
 
     const int32_t       &getClientSocket() const { return mClientFd; }
     const String8       &getFilePath() const { return mWillSendFilePath; }
-    const String8       &getJson() const { return mJson.dump(); }
     const HttpVersion   &getHttpVersion() const { return mVer; }
     const HttpStatus    &getHttpStatus()  const { return mStatus; }
     const ResponseType  &getResponseType() const { return mType; }
+    String8 getJson() const { return mJson.dump(); }
 
     String8 CreateHttpReponseHeader() const;
     String8 CreateHttpReponseHeader(HttpVersion ver, HttpStatus status);
