@@ -23,12 +23,17 @@ public:
     typedef std::shared_ptr<Address> sp;
     Address();
     Address(String8 ip, uint16_t port, uint32_t mask = 0);
+    Address(const sockaddr_in &addr);
     Address(const Address& addr);
     Address &operator=(const Address& addr);
+    Address &operator=(const sockaddr_in &addr);
 
     void setIP(String8 ip) { mIp = ip; }
     void setPort(uint16_t port) { mPort = port; }
     void setMask(uint32_t mask) { mMask = mask; }
+
+    String8 getIP() const { return mIp; }
+    uint16_t getPort() const { return mPort; }
 
     static sp CreateAddres(String8 ip, uint16_t port);
 

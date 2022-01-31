@@ -73,5 +73,33 @@ int main(int argc, char **argv)
     // cout << jp.GetStringValByKey("data.city") << endl;
     // cout << jp.GetStringValByKey("data.service") << endl;
 
+    JsonGenerator jg;
+    std::vector<std::pair<String8, String8>> array;
+    array.push_back(std::make_pair("name", "eular"));
+    array.push_back(std::make_pair("age", "23"));
+    jg.AddArrayNode("fortest", array);
+    array.clear();
+    array.push_back(std::make_pair("sex", "female"));
+    array.push_back(std::make_pair("born-date", "1998"));
+    jg.AddArrayNode("fortest", array);
+
+    JsonGenerator jgTemp = jg;
+    cout << "****************************\n";
+    cout << jgTemp.dump() << endl;
+    cout << "****************************\n";
+
+    /*
+    {
+        "fortest":      [{
+                        "name": "eular",
+                        "age":  "23"
+                }],
+        "fortest":      [{
+                        "sex":  "female",
+                        "born-date":    "1998"
+                }]
+    }
+    */
+
     return 0;
 }

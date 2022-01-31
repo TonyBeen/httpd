@@ -26,6 +26,11 @@ Address::Address(String8 ip, uint16_t port, uint32_t mask) :
 
 }
 
+Address::Address(const sockaddr_in &addr)
+{
+    *this = addr;
+}
+
 Address::Address(const Address& addr)
 {
     mIp = addr.mIp;
@@ -38,6 +43,16 @@ Address &Address::operator=(const Address& addr)
     mIp = addr.mIp;
     mPort = addr.mPort;
     mMask = addr.mMask;
+
+    return *this;
+}
+
+Address &Address::operator=(const sockaddr_in &addr)
+{
+    mIp = inet_ntoa(addr.sin_addr);
+    mPort = ntohs(addr.sin_port);
+
+    return *this;
 }
 
 Address::sp Address::CreateAddres(String8 ip, uint16_t port)
