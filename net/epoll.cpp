@@ -433,7 +433,7 @@ void Epoll::SendResponse(const HttpResponse &httpRes)
         SendFile(clientSock, httpHdr, httpRes.getFilePath());
         break;
     case HttpResponse::ResponseType::JSON:
-
+        SendJson(clientSock, httpHdr, httpRes.getJson());
         break;
     case HttpResponse::ResponseType::XML:
         break;
