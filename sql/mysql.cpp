@@ -40,7 +40,7 @@ MySqlConn::MySqlConn(const char *sqlUser, const char *passwd, const char *db,
         LOGE("mysql_real_connect error: %s", mysql_error(mSqlHandle));
         return;
     }
-    LOG("mysql connect success");
+    LOG("mysql connect success\n");
     mSqlInit = true;
 }
 
@@ -336,7 +336,7 @@ bool MySqlConn::KeepField(const char *table, const char *value)
         if (value[i] == ',') {
             mFieldMap[fieldIndex++]  = tmpBuf;
             // mFieldMap.emplace(std::make_pair<int, std::string>(fieldIndex++, tmpBuf));
-            LOG("[%d, %s]", fieldIndex - 1, tmpBuf);
+            LOG("[%d, %s]\n", fieldIndex - 1, tmpBuf);
             memset(tmpBuf, 0, sizeof(tmpBuf));
             index = 0;
             continue;
@@ -345,7 +345,7 @@ bool MySqlConn::KeepField(const char *table, const char *value)
     }
     // 保存最后一个字段名
     mFieldMap[fieldIndex++]  = tmpBuf;
-    LOG("[%d, %s]", fieldIndex - 1, tmpBuf);
+    LOG("[%d, %s]\n", fieldIndex - 1, tmpBuf);
 
     return true;
 }
