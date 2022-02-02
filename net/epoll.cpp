@@ -9,6 +9,7 @@
 #include "config.h"
 #include "http/http.h"
 #include "util/json.h"
+#include "api.h"
 #include <utils/exception.h>
 #include <log/log.h>
 #include <errno.h>
@@ -32,7 +33,8 @@ static String8  gMysqlUser;
 static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 static const String8 &gIndexHtml = "index.html";
-thread_local std::list<LoginInfo>     gUserLoginQueue;
+thread_local std::list<LoginInfo>            gUserLoginQueue;
+thread_local std::shared_ptr<api::TcpClient> gLocateAddressAPI;
 
 Epoll::Epoll() :
     mEpollFd(0)
@@ -45,6 +47,7 @@ Epoll::Epoll() :
     //     LOGE("%s() %s", __func__, e.what());
     //     exit(0);
     // }
+    gLocateAddressAPI = api::TcpClient::Create(443, "67ip.cn");
     mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
         // mWorkerThreadPool->start();
@@ -157,7 +160,7 @@ int Epoll::main_loop()
         if (nRet == 0) {
             LOGD("%zu users had login", gUserLoginQueue.size());
             for (const auto it : gUserLoginQueue) {
-                // TODO 查询用户登录ip的归属地
+                
             }
         }
 

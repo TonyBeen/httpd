@@ -19,7 +19,8 @@ namespace eular {
 namespace api {
 
 TcpClient::TcpClient() :
-    mSocket(-1)
+    mSocket(-1),
+    mRemoteHost(INADDR_NONE)
 {
     mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
 }
@@ -95,7 +96,7 @@ TcpClient::~TcpClient()
 
 std::shared_ptr<TcpClient> TcpClient::Create(uint16_t port, const String8 &remoteHost)
 {
-    return std::make_shared<TcpClient>(port, remoteHost);
+    return std::make_shared<TcpClient>(remoteHost, port);
 }
 
 void TcpClient::setPort(uint16_t port)
@@ -103,10 +104,15 @@ void TcpClient::setPort(uint16_t port)
     mRemotePort = port;
 }
 
-void TcpClient::setHost(const String8 &ip)
+void TcpClient::setHost(const String8 &host)
 {
-    mRemoteIP = ip;
-    mRemoteHost = inet_addr(ip.c_str());
+    struct hostent *hostInfo = gethostbyname(host.c_str());
+    if (hostInfo == nullptr) {
+        return;
+    }
+
+    mRemoteIP = hostInfo->h_addr_list[0];
+    mRemoteHost = inet_addr(mRemoteIP.c_str());
 }
 
 bool TcpClient::setnonblock()
