@@ -418,7 +418,7 @@ int TcpServer::accept_loop()
         if (nRet > 0) {
             for (int i = 0; i < nRet; ++i) {
                 auto &event = events[i];
-                if (event.data.fd = mSockFd) {
+                if (event.data.fd == mSockFd) {
                     int fd = this->accept(nullptr);
                 }
             }
