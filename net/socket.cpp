@@ -265,14 +265,6 @@ void Socket::destroy()
 TcpServer::TcpServer(uint16_t port, const String8 &IP) :
     Socket(TCP, IPv4, port, IP)
 {
-    hostent *host = gethostbyname("www.36ip.cn");
-    if (host != nullptr) {
-        char *tmp = host->h_addr_list[0];
-        mIpLocationAPIHost = inet_ntoa(*(struct in_addr*)tmp);
-        int n = mIPLocationAPI.reset(443, mIpLocationAPIHost);
-        LOGD("n = %d", n);
-    }
-
     gSizeOfEpollVec = Config::Lookup<uint32_t>("epollvec.size", 5);
 
     for (int i = 0; i < gSizeOfEpollVec; ++i) {
@@ -366,26 +358,6 @@ int TcpServer::accept(sockaddr_in *addr)
                 LOGW("what() %s", e.what());
             }
         }
-#else
-        // if (mIPLocationAPI.isConnected()) {
-        //     static const char *requestBufFmt =
-        //         "GET /?ip=%s HTTP/1.1\r\n"
-        //         "Host: www.36ip.cn\r\n"
-        //         "Connection: keep-alive\r\n"
-        //         "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36\r\n"
-        //         "Pragma: no-cache\r\n"
-        //         "X-Forwarded-For: 111.165.64.99\r\n"
-        //         "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\n"
-        //         "Cache-Control: no-cache\r\n\r\n";
-        //     char buf[1024] = {0};
-        //     char recvBuf[4096] = {0};
-        //     int n = snprintf(buf, sizeof(buf), requestBufFmt, acceptIP.c_str());
-        //     LOGD("send buf:\n%s", buf);
-        //     if (mIPLocationAPI.send((uint8_t *)buf, n) > 0) {
-        //         n = mIPLocationAPI.recv((uint8_t *)recvBuf, sizeof(recvBuf));
-        //         LOGD("recv:\n%s", recvBuf);
-        //     }
-        // }
 #endif
     } else {
         LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
@@ -412,13 +384,12 @@ int TcpServer::accept_loop()
     while (true) {
         int nRet = epoll_wait(epollfd, events, 2, 5000);
         if (nRet == 0) {
-            // 处理登录事件
             continue;
         }
         if (nRet > 0) {
             for (int i = 0; i < nRet; ++i) {
                 auto &event = events[i];
-                if (event.data.fd = mSockFd) {
+                if (event.data.fd == mSockFd) {
                     int fd = this->accept(nullptr);
                 }
             }
@@ -431,80 +402,6 @@ int TcpServer::accept_loop()
     close(epollfd);
     LOGD("%s() end", __func__);
     return Thread::THREAD_WAITING;
-}
-
-TcpClient::TcpClient() :
-    mIsConnected(-1)
-{
-    mSockFd = -1;
-}
-
-TcpClient::TcpClient(uint16_t destPort, const String8& destAddr) :
-    ClientBase(destPort, destAddr),
-    mIsConnected(-1)
-{
-    mSockFd = socket(AF_INET, SOCK_STREAM, 0);
-    if (mSockFd < 0) {
-        throw Exception(String8::format("socket error. [%d,%s]", errno, strerror(errno)));
-    }
-}
-
-TcpClient::~TcpClient()
-{
-    destroy();
-}
-
-int TcpClient::connect()
-{
-    struct sockaddr_in addr;
-    memset(&addr, 0, sizeof(addr));
-
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(mDestPort);
-    addr.sin_addr.s_addr = inet_addr(mDestAddr.c_str());
-
-    mIsConnected = ::connect(mSockFd, (struct sockaddr *)&addr, sizeof(addr));
-    return mIsConnected;
-}
-
-int TcpClient::reset(uint16_t destPort, const String8& destAddr)
-{
-    destroy();
-    mDestPort = destPort;
-    mDestAddr = destAddr;
-
-    mSockFd = socket(AF_INET, SOCK_STREAM, 0);
-    if (mSockFd < 0) {
-        return mSockFd;
-    }
-
-    struct sockaddr_in addr;
-    memset(&addr, 0, sizeof(addr));
-
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(destPort);
-    addr.sin_addr.s_addr = inet_addr(destAddr.c_str());
-    mIsConnected = ::connect(mSockFd, (struct sockaddr *)&addr, sizeof(addr));
-    return mIsConnected;
-}
-
-ssize_t TcpClient::recv(uint8_t *buf, uint32_t bufSize)
-{
-    return ::recv(mSockFd, buf, bufSize, 0);
-}
-
-ssize_t TcpClient::send(const uint8_t *buf, uint32_t bufSize)
-{
-    return ::send(mSockFd, buf, bufSize, 0);
-}
-
-void TcpClient::destroy()
-{
-    if (mSockFd > 0) {
-        close(mSockFd);
-        mSockFd = -1;
-    }
-    mIsConnected = -1;
 }
 
 } // namespace eular

@@ -75,56 +75,6 @@ protected:
     std::map<uint32_t, sockaddr_in>     mClientFdMap;
 };
 
-/**
- * @brief 套接字客户端类
- */
-class ClientBase {
-public:
-    ClientBase() {}
-    ClientBase(uint16_t destPort, const String8& destAddr) :
-        mDestPort(destPort),
-        mDestAddr(destAddr),
-        mSockFd(-1) {}
-    virtual ~ClientBase() {}
-
-    void        setDestPort(uint16_t port) { mDestPort = port; }
-    void        setDestAddr(const String8& destAddr) { mDestAddr = destAddr; }
-    uint16_t    getPort() const { return mDestPort; }
-    String8     getAddr() const { return mDestAddr; }
-
-    virtual int connect() = 0;
-    virtual int reset(uint16_t destPort, const String8& destAddr) = 0;
-
-    virtual ssize_t recv(uint8_t *buf, uint32_t bufSize) = 0;
-    virtual ssize_t send(const uint8_t *buf, uint32_t bufSize) = 0;
-
-protected:
-    uint16_t    mDestPort;
-    String8     mDestAddr;
-
-    int         mSockFd;
-};
-
-class TcpClient : public ClientBase {
-public:
-    TcpClient();
-    TcpClient(uint16_t destPort, const String8& destAddr);
-    virtual ~TcpClient();
-
-    virtual int connect() override;
-    virtual int reset(uint16_t destPort, const String8& destAddr) override;
-
-    virtual ssize_t recv(uint8_t *buf, uint32_t bufSize) override;
-    virtual ssize_t send(const uint8_t *buf, uint32_t bufSize) override;
-
-    bool isConnected() const { mIsConnected == 0; }
-
-private:
-    void destroy();
-
-    int mIsConnected;
-};
-
 class TcpServer : public Socket
 {
 public:
@@ -147,9 +97,6 @@ public:
     
 private:
     std::map<std::shared_ptr<Thread>, std::shared_ptr<Epoll>, TcpServer::Compare> mEpollProcMap;
-
-    TcpClient mIPLocationAPI;
-    String8   mIpLocationAPIHost;   // 查询接口IP
 };
 
 } // namespace eular

@@ -21,7 +21,6 @@ static std::atomic<uint64_t> gFiberCount(0);    // 当前协程总数
 static thread_local Fiber *gCurrFiber = nullptr;            // 当前正在执行的协程
 static thread_local Fiber::sp gThreadMainFiber = nullptr;   // 一个线程的主协程
 
-// TODO: 配置yaml文件，获取栈大小
 uint64_t getStackSize()
 {
     static uint64_t size = 0;
