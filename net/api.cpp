@@ -22,7 +22,7 @@ TcpClient::TcpClient() :
     mSocket(-1),
     mRemoteHost(INADDR_NONE)
 {
-    mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+
 }
 
 TcpClient::TcpClient(const sockaddr_in *addr) :
@@ -103,11 +103,6 @@ TcpClient::~TcpClient()
     }
 }
 
-std::shared_ptr<TcpClient> TcpClient::Create(uint16_t port, const String8 &remoteHost)
-{
-    return std::make_shared<TcpClient>(remoteHost, port);
-}
-
 void TcpClient::setPort(uint16_t port)
 {
     mRemotePort = port;
@@ -120,8 +115,45 @@ void TcpClient::setHost(const String8 &host)
         return;
     }
 
-    mRemoteIP = hostInfo->h_addr_list[0];
-    mRemoteHost = inet_addr(mRemoteIP.c_str());
+    char *temp = hostInfo->h_addr_list[0];
+    mRemoteIP = inet_ntoa(*(struct in_addr*)temp);
+    mRemoteHost = ((struct in_addr*)temp)->s_addr;
+}
+
+bool TcpClient::connect(const String8 &host, uint16_t port)
+{
+    struct hostent *hostInfo = gethostbyname(host.c_str());
+    if (hostInfo == nullptr) {
+        return false;
+    }
+
+    char *temp = hostInfo->h_addr_list[0];
+    mRemoteIP = inet_ntoa(*(struct in_addr*)temp);
+    mRemoteHost = ((struct in_addr*)temp)->s_addr;
+    mRemotePort = port;
+
+    if (mSocket > 0) {
+        close(mSocket);
+        mSocket = -1;
+    }
+
+    mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (mSocket < 0) {
+        return false;
+    }
+
+    sockaddr_in addr;
+    memset(&addr, 0, sizeof(sockaddr_in));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = mRemoteHost;
+
+    if (::connect(mSocket, (const sockaddr *)&addr, sizeof(sockaddr_in)) < 0) {
+        LOGE("%s() connect error. [%d,%s]", __func__, errno, strerror(errno));
+        return false;
+    }
+
+    return true;
 }
 
 bool TcpClient::setnonblock()
@@ -163,7 +195,7 @@ int TcpClient::send(const void *buffer, uint32_t len)
     if (mSocket < 0) {
         return eular::NO_INIT;
     }
-
+    LOGD("%s() -----------");
     return ::send(mSocket, buffer, len, 0);
 }
 

@@ -44,10 +44,9 @@ public:
     TcpClient(uint16_t port, const String8& ip);
     virtual ~TcpClient();
 
-    static std::shared_ptr<TcpClient> Create(uint16_t port, const String8 &remoteHost);
-
     void setPort(uint16_t port);
     void setHost(const String8 &host);
+    bool connect(const String8 &host, uint16_t port);
 
     bool setnonblock() override;
     bool setrecvtimeout(uint32_t) override;

@@ -33,8 +33,8 @@ static String8  gMysqlUser;
 static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 static const String8 &gIndexHtml = "index.html";
-thread_local std::list<LoginInfo>            gUserLoginQueue;
-thread_local std::shared_ptr<api::TcpClient> gLocateAddressAPI;
+thread_local std::list<LoginInfo>           gUserLoginQueue;
+thread_local api::TcpClient                 gLocateAddressAPI;
 
 Epoll::Epoll() :
     mEpollFd(0)
@@ -47,9 +47,7 @@ Epoll::Epoll() :
     //     LOGE("%s() %s", __func__, e.what());
     //     exit(0);
     // }
-    gLocateAddressAPI = api::TcpClient::Create(443, "67ip.cn");
-    gLocateAddressAPI->setrecvtimeout(300);
-    gLocateAddressAPI->setsendtimeout(300);
+    gLocateAddressAPI.connect("67ip.cn", 443);
 
     mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
@@ -170,16 +168,17 @@ int Epoll::main_loop()
                 static const String8 body = 
                         "Host: 67ip.cn\r\n"
                         "Connection: keep-alive\r\n"
-                        "User-Agent: eular/httpd v1.0"
+                        "User-Agent: eular/httpd v1.0\r\n"
                         "Accept: application/json;\r\n"
                         "Pragma: no-cache\r\n"
                         "Cache-Control: no-cache\r\n\r\n";
                 String8 request = String8::format(header, it.loginIP.c_str()) + body;
-                LOGD("api reuqest: \n******************\n%s******************\n}", request.c_str());
-                if (gLocateAddressAPI->send(request.c_str(), request.length()) < 0) {
+                LOGD("api reuqest: \n******************\n%s******************\n", request.c_str());
+                if (gLocateAddressAPI.send(request.c_str(), request.length()) <= 0) {
                     break;
                 }
-                if (gLocateAddressAPI->recv(buffer) > 0) {
+                LOGD("--------------");
+                if (gLocateAddressAPI.recv(buffer) > 0) {
                     LOGD("api response: \n%s", buffer.const_data());
                     JsonParser jp;
                     jp.Parse((const char *)buffer.const_data(), true);
