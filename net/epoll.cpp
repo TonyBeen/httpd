@@ -155,6 +155,9 @@ int Epoll::main_loop()
             // https://www.36ip.cn/?ip=39.106.218.123
             if (gLocateAddressAPI.connected() == false) {
                 gLocateAddressAPI.connect("67ip.cn", 443);
+                ByteBuffer buffer;
+                gLocateAddressAPI.recv(buffer);
+                LOGD("api response: \n%s", buffer.const_data());
             }
             for (const auto &it : gUserLoginQueue) {
                 ByteBuffer buffer;
