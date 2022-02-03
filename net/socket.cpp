@@ -301,10 +301,6 @@ int TcpServer::accept(sockaddr_in *addr)
 
         LOGI("accept client %d, [%s:%u]", clientFd, inet_ntoa(tmp.sin_addr), ntohs(tmp.sin_port));
         LOG_ASSERT(epoll, "");
-        if (tmp.sin_addr.s_addr == 0 || tmp.sin_port == 0) {
-            close(clientFd);
-            return 0;
-        }
         epoll->addEvent(clientFd, tmp);
 
         static String8 IPmsg;

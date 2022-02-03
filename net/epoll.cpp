@@ -153,7 +153,7 @@ int Epoll::main_loop()
     });
 
     while (true) {
-        int nRet = epoll_wait(mEpollFd, eventAll, EPOLL_EVENT_SIZE, 5000);
+        int nRet = epoll_wait(mEpollFd, eventAll, EPOLL_EVENT_SIZE, -1);
         if (nRet < 0 && errno != EAGAIN) {
             LOGE("epoll_wait error. errno = %d, str: %s", errno, strerror(errno));
             break;
