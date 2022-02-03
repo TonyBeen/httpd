@@ -33,21 +33,13 @@ static String8  gMysqlUser;
 static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 static const String8 &gIndexHtml = "index.html";
-thread_local std::list<LoginInfo>           gUserLoginQueue;
-thread_local api::TcpClient                 gLocateAddressAPI;
+static thread_local std::list<LoginInfo>    gUserLoginQueue;
+static thread_local api::TcpClient          gLocateAddressAPI;
 
 Epoll::Epoll() :
     mEpollFd(0)
 {
     LoadConfig();
-    // try {
-    //     mWorkerThreadPool = new ThreadPool(gMinThreadNum, gMaxThreadNum);
-    //     LOG_ASSERT(mWorkerThreadPool != nullptr, "%s %d %s()", __FILE__, __LINE__, __func__);
-    // } catch (const Exception &e) {
-    //     LOGE("%s() %s", __func__, e.what());
-    //     exit(0);
-    // }
-    gLocateAddressAPI.connect("67ip.cn", 443);
 
     mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
@@ -161,6 +153,9 @@ int Epoll::main_loop()
             LOGD("%zu users had login", gUserLoginQueue.size());
             // https://67ip.cn/check?ip=39.102.104.241&token=a6fa55815ce40d6b1c7b4c5519298516
             // https://www.36ip.cn/?ip=39.106.218.123
+            if (gLocateAddressAPI.connected() == false) {
+                gLocateAddressAPI.connect("67ip.cn", 443);
+            }
             for (const auto &it : gUserLoginQueue) {
                 ByteBuffer buffer;
                 static const char *header =
@@ -174,10 +169,11 @@ int Epoll::main_loop()
                         "Cache-Control: no-cache\r\n\r\n";
                 String8 request = String8::format(header, it.loginIP.c_str()) + body;
                 LOGD("api reuqest: \n******************\n%s******************\n", request.c_str());
-                if (gLocateAddressAPI.send(request.c_str(), request.length()) <= 0) {
+                int sendRet = gLocateAddressAPI.send(request.c_str(), request.length());
+                if (sendRet < 0) {
+                    LOGE("%s() send error. %d [%d,%s]", __func__, sendRet, errno, strerror(errno));
                     break;
                 }
-                LOGD("--------------");
                 if (gLocateAddressAPI.recv(buffer) > 0) {
                     LOGD("api response: \n%s", buffer.const_data());
                     JsonParser jp;
@@ -192,6 +188,7 @@ int Epoll::main_loop()
                     }
                 }
             }
+            gUserLoginQueue.clear();
         }
 
         LOGD("epoll_wait events = %d", nRet);

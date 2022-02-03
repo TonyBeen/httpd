@@ -47,8 +47,8 @@ public:
     int             run(uint32_t stackSize = 0);
 
 protected:
-    static void *threadloop(void *);
-    bool ShouldExit() const { return mShouldExit.load(); }
+    static void *   threadloop(void *);
+    bool            ShouldExit() const { return mShouldExit.load(); }
     int             start(uint32_t stackSize);
 
 private:

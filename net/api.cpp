@@ -153,6 +153,7 @@ bool TcpClient::connect(const String8 &host, uint16_t port)
         return false;
     }
 
+    LOGI("connect to [%s:%u]", mRemoteIP.c_str(), mRemotePort);
     return true;
 }
 
@@ -195,7 +196,6 @@ int TcpClient::send(const void *buffer, uint32_t len)
     if (mSocket < 0) {
         return eular::NO_INIT;
     }
-    LOGD("%s() -----------");
     return ::send(mSocket, buffer, len, 0);
 }
 

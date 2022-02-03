@@ -57,6 +57,8 @@ public:
     int recv(void *buffer, uint32_t bufSize) override;
     int recv(ByteBuffer &buffer) override;
 
+    bool connected() const { return mSocket > 0; }
+
 protected:
     int         mSocket;
 
