@@ -153,7 +153,7 @@ int Epoll::main_loop()
     });
 
     while (true) {
-        int nRet = epoll_wait(mEpollFd, eventAll, EPOLL_EVENT_SIZE, -1);
+        int nRet = epoll_wait(mEpollFd, eventAll, EPOLL_EVENT_SIZE, 5000);
         if (nRet < 0 && errno != EAGAIN) {
             LOGE("epoll_wait error. errno = %d, str: %s", errno, strerror(errno));
             break;
@@ -270,12 +270,6 @@ void Epoll::ReadEventProcess(int fd)
 
     switch (method) {
     case HttpMethod::GET:
-        // if (url == "/login") {
-        //     ProcessLogin(url, parser, response);
-        //     SendResponse(response);
-        //     break;
-        // }
-
         if (url == "/") {
             response.setFilePath(root + gIndexHtml);
             response.setHttpStatus(HttpStatus::OK);
