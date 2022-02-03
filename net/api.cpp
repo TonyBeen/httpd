@@ -196,7 +196,13 @@ int TcpClient::send(const void *buffer, uint32_t len)
     if (mSocket < 0) {
         return eular::NO_INIT;
     }
-    return ::send(mSocket, buffer, len, 0);
+    int ret = ::send(mSocket, buffer, len, 0);
+    if (ret < 0) {
+        LOGW("send error. [%d,%s]", errno, strerror(errno));
+        close(mSocket);
+        mSocket = -1;
+    }
+    return ret;
 }
 
 int TcpClient::send(const ByteBuffer &buffer)
@@ -205,7 +211,13 @@ int TcpClient::send(const ByteBuffer &buffer)
         return eular::NO_INIT;
     }
 
-    return ::send(mSocket, buffer.const_data(), buffer.size(), 0);
+    int ret = ::send(mSocket, buffer.const_data(), buffer.size(), 0);
+    if (ret < 0) {
+        LOGW("send error. [%d,%s]", errno, strerror(errno));
+        close(mSocket);
+        mSocket = -1;
+    }
+    return ret;
 }
 
 int TcpClient::recv(void *buffer, uint32_t bufSize)

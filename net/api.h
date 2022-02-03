@@ -35,6 +35,7 @@ public:
     virtual int recv(ByteBuffer &buffer) = 0;
 };
 
+// 如果对端断开连接需要重置mSocket
 class TcpClient : public ClientBase
 {
 public:
