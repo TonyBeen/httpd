@@ -45,22 +45,31 @@ TcpClient::TcpClient(const String8 &host, uint16_t port) :
     mSocket(-1),
     mRemotePort(port)
 {
-    struct hostent *hostInfo = gethostbyname(host.c_str());
+    hostent *hostInfo = gethostbyname(host.c_str());
     if (hostInfo == nullptr) {
         return;
     }
 
-    mRemoteIP = hostInfo->h_addr_list[0];
-    mRemoteHost = inet_addr(mRemoteIP.c_str());
+    mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (mSocket < 0) {
+        return;
+    }
+
+    char *temp = hostInfo->h_addr_list[0];
+    mRemoteIP = inet_ntoa(*(struct in_addr*)temp);
+    mRemoteHost = ((struct in_addr*)temp)->s_addr;
+    LOGD("[%s,%u]", mRemoteIP.c_str(), mRemoteHost);
 
     sockaddr_in addr;
     memset(&addr, 0, sizeof(sockaddr_in));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(mRemotePort);
-    addr.sin_addr.s_addr = mRemoteHost == INADDR_NONE ? INADDR_ANY : mRemoteHost;
+    addr.sin_addr.s_addr = mRemoteHost;
 
     if (::connect(mSocket, (const sockaddr *)&addr, sizeof(sockaddr_in)) < 0) {
-        LOGE("%s(const sockaddr_in *addr) connect error. [%d,%s]", __func__, errno, strerror(errno));
+        LOGE("%s(const String8 &host, uint16_t port) connect error. [%d,%s]", __func__, errno, strerror(errno));
+    } else {
+        LOGD("API %s[%s] connected", host.c_str(), mRemoteIP.c_str());
     }
 }
 
@@ -82,7 +91,7 @@ TcpClient::TcpClient(uint16_t port, const String8& ip) :
     addr.sin_addr.s_addr = inet_addr(ip.c_str());
 
     if (::connect(mSocket, (const sockaddr *)&addr, sizeof(sockaddr_in)) < 0) {
-        LOGE("%s(const sockaddr_in *addr) connect error. [%d,%s]", __func__, errno, strerror(errno));
+        LOGE("%s(uint16_t port, const String8& ip) connect error. [%d,%s]", __func__, errno, strerror(errno));
     }
 }
 

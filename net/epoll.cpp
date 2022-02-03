@@ -48,6 +48,9 @@ Epoll::Epoll() :
     //     exit(0);
     // }
     gLocateAddressAPI = api::TcpClient::Create(443, "67ip.cn");
+    gLocateAddressAPI->setrecvtimeout(300);
+    gLocateAddressAPI->setsendtimeout(300);
+
     mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
         // mWorkerThreadPool->start();
@@ -134,7 +137,6 @@ bool Epoll::Reinit()
 
 int Epoll::main_loop()
 {
-    LOGD("%s()", __FUNCTION__);
     sockaddr_in clientAddr;
     socklen_t addrLen;
     if (mEpollFd <= 0) {
@@ -159,8 +161,27 @@ int Epoll::main_loop()
 
         if (nRet == 0) {
             LOGD("%zu users had login", gUserLoginQueue.size());
-            for (const auto it : gUserLoginQueue) {
-                
+            for (const auto &it : gUserLoginQueue) {
+                ByteBuffer buffer;
+                static const char *header =
+                        "GET /check?ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516 HTTP/1.1\r\n";
+                static const String8 body = 
+                        "Host: 67ip.cn\r\n"
+                        "Connection: keep-alive\r\n"
+                        "User-Agent: eular/httpd v1.0"
+                        "Accept: application/json;\r\n"
+                        "Pragma: no-cache\r\n"
+                        "Cache-Control: no-cache\r\n\r\n";
+                String8 request = String8::format(header, it.loginIP.c_str()) + body;
+                LOGD("api reuqest: \n******************\n%s******************\n}", request.c_str());
+                if (gLocateAddressAPI->send(request.c_str(), request.length()) < 0) {
+                    break;
+                }
+                if (gLocateAddressAPI->recv(buffer) > 0) {
+                    LOGD("api response: \n%s", buffer.const_data());
+                    JsonParser jp;
+                    jp.Parse((const char *)buffer.const_data(), true);
+                }
             }
         }
 
