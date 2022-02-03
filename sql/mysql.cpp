@@ -5,7 +5,7 @@
     > Created Time: Fri 20 Aug 2021 09:12:37 AM CST
  ************************************************************************/
 
-#define _DEBUG
+//#define _DEBUG
 #include "mysql.h"
 #include "utils/debug.h"
 #include <log/log.h>
