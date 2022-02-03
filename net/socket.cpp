@@ -333,10 +333,7 @@ int TcpServer::accept_loop()
     epoll_event events[2];
 
     while (true) {
-        int nRet = epoll_wait(epollfd, events, 2, 5000);
-        if (nRet == 0) {
-            continue;
-        }
+        int nRet = epoll_wait(epollfd, events, 2, -1);
         if (nRet > 0) {
             for (int i = 0; i < nRet; ++i) {
                 auto &event = events[i];
