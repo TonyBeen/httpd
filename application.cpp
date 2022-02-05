@@ -91,8 +91,7 @@ int Application::init(int argc, char **argv)
 
 int Application::run()
 {
-    // 判断一些html是否存在
-    // 如index.html home.html 404.html
+    // TODO 判断一些html是否存在，如index.html home.html 404.html
     LOGI("start as daemon %d", mRunAsDaemons);
     if (mRunAsDaemons) {
         start_with_daemon();
@@ -105,7 +104,7 @@ int Application::run()
 void Signalcatch(int sig)
 {
     LOGI("catch signal %d", sig);
-    if (sig == SIGABRT || sig == SIGSEGV) {
+    if (sig == SIGSEGV) {
         // 产生堆栈信息;
         LOG_ASSERT(false, "");
     }
