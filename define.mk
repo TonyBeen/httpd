@@ -7,7 +7,7 @@ CURRENT_PATH := $(shell pwd)
 INCLUDE := 	-I$(CURRENT_PATH)
 
 STATIC_LIB := /usr/local/lib/libyaml-cpp.a /usr/local/lib/libmysqlclient.a # /usr/local/lib/libthreadpool.a
-SHARED_LIB := -lutils -llog -lpthread -ldl
+SHARED_LIB := -lcurl -lutils -llog -lpthread -ldl
 
 SQL_DIR = $(CURRENT_PATH)/sql
 NET_DIR = $(CURRENT_PATH)/net
