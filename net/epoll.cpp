@@ -9,7 +9,7 @@
 #include "config.h"
 #include "http/http.h"
 #include "util/json.h"
-#include "api.h"
+#include "curl.h"
 #include <utils/exception.h>
 #include <log/log.h>
 #include <errno.h>
@@ -34,12 +34,19 @@ static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 static const String8 &gIndexHtml = "index.html";
 static thread_local std::list<LoginInfo>    gUserLoginQueue;
-static thread_local api::TcpClient          gLocateAddressAPI;
+static thread_local Curl                    gLocateAddressAPI;
 
 Epoll::Epoll() :
     mEpollFd(0)
 {
     LoadConfig();
+
+    gLocateAddressAPI.setUrl("https://67ip.cn/check");
+    gLocateAddressAPI.storeHeader("Host", "67ip.cn");
+    gLocateAddressAPI.storeHeader("Connection", "keep-alive");
+    gLocateAddressAPI.storeHeader("Accept", "application/json; */*");
+    gLocateAddressAPI.storeHeader("User-Agent", "eular/httpd v1.0");
+    gLocateAddressAPI.storeHeader("Cache-Control", "no-cache");
 
     mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
@@ -153,34 +160,20 @@ int Epoll::main_loop()
             LOGD("%zu users had login", gUserLoginQueue.size());
             // https://67ip.cn/check?ip=39.102.104.241&token=a6fa55815ce40d6b1c7b4c5519298516
             // https://www.36ip.cn/?ip=39.106.218.123
-            if (gLocateAddressAPI.connected() == false) {
-                gLocateAddressAPI.connect("67ip.cn", 443);
-                ByteBuffer buffer;
-                gLocateAddressAPI.recv(buffer);
-                LOGD("api response: \n%s", buffer.const_data());
+            if (gLocateAddressAPI.isValid() == false) {
+                gLocateAddressAPI.setUrl("https://67ip.cn/check");
             }
+
             for (const auto &it : gUserLoginQueue) {
-                ByteBuffer buffer;
-                static const char *header =
-                        "GET /check?ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516 HTTP/1.1\r\n";
-                static const String8 body = 
-                        "Host: 67ip.cn\r\n"
-                        "Connection: keep-alive\r\n"
-                        "User-Agent: eular/httpd v1.0\r\n"
-                        "Accept: application/json; */*\r\n"
-                        "Pragma: no-cache\r\n"
-                        "Cache-Control: no-cache\r\n\r\n";
-                String8 request = String8::format(header, it.loginIP.c_str()) + body;
-                LOGD("api reuqest: \n******************\n%s******************\n", request.c_str());
-                int sendRet = gLocateAddressAPI.send(request.c_str(), request.length());
-                if (sendRet < 0) {
-                    LOGE("%s() send error. %d [%d,%s]", __func__, sendRet, errno, strerror(errno));
-                    break;
-                }
-                if (gLocateAddressAPI.recv(buffer) > 0) {
-                    LOGD("api response: \n%s", buffer.const_data());
+                static const char *requestFmt = "ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516";
+                String8 request = String8::format(requestFmt, it.loginIP.c_str());
+                gLocateAddressAPI.setoptVerbose(true);
+                gLocateAddressAPI.setFileds(request);
+                if (gLocateAddressAPI.perform()) {
+                    String8 response = gLocateAddressAPI.getResponse();
+                    LOGD("api response: \n%s", response.c_str());
                     JsonParser jp;
-                    jp.Parse((const char *)buffer.const_data(), true);
+                    jp.Parse(response.c_str(), true);
                     int ret = jp.GetIntValByKey("code");
                     if (ret == 200) {
                         LOGD("country: %s, province: %s, city: %s: service: %s",

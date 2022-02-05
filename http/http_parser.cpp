@@ -70,7 +70,7 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
         break;
     case HttpMethod::POST:
         mRequestData.set((const uint8_t *)httpRequest.c_str() + index, httpRequest.length() - index);
-        LOGD("POST data: [%s]", mRequestData.data());
+        LOGD("POST data: [\"%s\"]", mRequestData.data());
         break;
     case HttpMethod::PUT:
         break;
@@ -95,7 +95,6 @@ bool HttpParser::ParserRequestData()
 
     while ((pos = requestData.find('&', prevPos)) > 0) {
         String8 keyValue = String8(requestData.c_str() + prevPos, pos - prevPos);
-        LOGD("%s() KeyValue = \"%s\"", __func__, keyValue.c_str());
         int32_t equalPos = keyValue.find('=');
         if (equalPos > 0) {
             mRequestDataMap[String8(keyValue.c_str(), equalPos)] = String8(keyValue.c_str() + equalPos + 1);

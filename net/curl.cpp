@@ -43,7 +43,16 @@ Curl::~Curl()
     }
 }
 
-// 追加http头部
+bool Curl::setUrl(const String8 &url)
+{
+    mUrl = url;
+    if (!mCurl) {
+        mCurl = curl_easy_init();
+    }
+
+    return mCurl != nullptr;
+}
+
 bool Curl::storeHeader(const String8 &key, const String8 &value)
 {
     String8 keyValue = String8::format("%s: %s", key.c_str(), value.c_str());
@@ -62,11 +71,18 @@ void Curl::clearHeader()
 
 bool Curl::setoptVerbose(uint8_t on)
 {
+    if (!mCurl) {
+        return false;
+    }
     return curl_easy_setopt(mCurl, CURLOPT_VERBOSE, on) == CURLE_OK;
 }
 
 bool Curl::setFileds(const String8 &request)
 {
+    if (!mCurl) {
+        return false;
+    }
+
     CURLcode code = curl_easy_setopt(mCurl, CURLOPT_POSTFIELDS, request.c_str());
     if (code != CURLE_OK) {
         LOGE("curl_easy_setopt error. [%d,%s]\n", code, curl_easy_strerror(code));
@@ -83,6 +99,10 @@ bool Curl::setFileds(const String8 &request)
 
 bool Curl::perform()
 {
+    if (!mCurl) {
+        return false;
+    }
+
     CURLcode code = curl_easy_setopt(mCurl, CURLOPT_URL, mUrl.c_str());
     code = curl_easy_setopt(mCurl, CURLOPT_HTTPHEADER, mHttpHeader);
     code = curl_easy_setopt(mCurl, CURLOPT_HEADER, 1);

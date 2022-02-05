@@ -25,7 +25,7 @@ public:
     Curl(const String8 &url);
     ~Curl();
 
-    void setUrl(const String8 &url) { mUrl = url; }
+    bool setUrl(const String8 &url);
 
     // 追加http头部
     bool storeHeader(const String8 &key, const String8 &value);
@@ -33,6 +33,8 @@ public:
     bool setoptVerbose(uint8_t on);
     bool setFileds(const String8 &request);
     bool perform();
+
+    bool isValid() const { return mCurl != nullptr; }
 
     String8 getResponse() const { return mResponseContent; }
 
