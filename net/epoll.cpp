@@ -9,7 +9,6 @@
 #include "config.h"
 #include "http/http.h"
 #include "util/json.h"
-#include "curl.h"
 #include <utils/exception.h>
 #include <log/log.h>
 #include <errno.h>
@@ -34,19 +33,18 @@ static String8  gMysqlPasswd;
 static String8  gDatabaseName;
 static const String8 &gIndexHtml = "index.html";
 static thread_local std::list<LoginInfo>    gUserLoginQueue;
-static thread_local Curl                    gLocateAddressAPI;
 
 Epoll::Epoll() :
     mEpollFd(0)
 {
     LoadConfig();
 
-    gLocateAddressAPI.setUrl("https://67ip.cn/check");
-    gLocateAddressAPI.storeHeader("Host", "67ip.cn");
-    gLocateAddressAPI.storeHeader("Connection", "keep-alive");
-    gLocateAddressAPI.storeHeader("Accept", "application/json; */*");
-    gLocateAddressAPI.storeHeader("User-Agent", "eular/httpd v1.0");
-    gLocateAddressAPI.storeHeader("Cache-Control", "no-cache");
+    mLocateAddressAPI.setUrl("https://67ip.cn/check");
+    mLocateAddressAPI.storeHeader("Host", "67ip.cn");
+    mLocateAddressAPI.storeHeader("Connection", "keep-alive");
+    mLocateAddressAPI.storeHeader("Accept", "application/json; */*");
+    mLocateAddressAPI.storeHeader("User-Agent", "eular/httpd v1.0");
+    mLocateAddressAPI.storeHeader("Cache-Control", "no-cache");
 
     mEpollMutex.setMutexName("epoll mutex");
     if (Reinit()) {
@@ -160,17 +158,17 @@ int Epoll::main_loop()
             LOGD("%zu users had login", gUserLoginQueue.size());
             // https://67ip.cn/check?ip=39.102.104.241&token=a6fa55815ce40d6b1c7b4c5519298516
             // https://www.36ip.cn/?ip=39.106.218.123
-            if (gLocateAddressAPI.isValid() == false) {
-                gLocateAddressAPI.setUrl("https://67ip.cn/check");
+            if (mLocateAddressAPI.isValid() == false) {
+                mLocateAddressAPI.setUrl("https://67ip.cn/check");
             }
 
             for (const auto &it : gUserLoginQueue) {
                 static const char *requestFmt = "ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516";
                 String8 request = String8::format(requestFmt, it.loginIP.c_str());
-                gLocateAddressAPI.setoptVerbose(true);
-                gLocateAddressAPI.setFileds(request);
-                if (gLocateAddressAPI.perform()) {
-                    String8 response = gLocateAddressAPI.getResponse();
+                mLocateAddressAPI.setoptVerbose(true);
+                mLocateAddressAPI.setFileds(request);
+                if (mLocateAddressAPI.perform()) {
+                    String8 response = mLocateAddressAPI.getResponse();
                     LOGD("api response: \n%s", response.c_str());
                     JsonParser jp;
                     jp.Parse(response.c_str(), true);
@@ -452,7 +450,6 @@ void Epoll::SendResponse(const HttpResponse &httpRes)
 {
     int clientSock = httpRes.getClientSocket();
     String8 httpHdr = httpRes.CreateHttpReponseHeader() + httpRes.CreateHttpReponseBody();
-    LOGD("response \n%s", httpHdr.c_str());
 
     HttpResponse::ResponseType type = httpRes.getResponseType();
 

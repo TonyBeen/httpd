@@ -10,6 +10,7 @@
 
 #include "address.h"
 #include "fiber.h"
+#include "curl.h"
 #include "thread/threadpool.h"
 #include "http/http_parser.h"
 #include "http/http_response.h"
@@ -69,6 +70,7 @@ private:
     ThreadPool *        mWorkerThreadPool;  // 处理http请求工作线程 unused
     MySqlConn *         mMysqlDb;
     Mutex               mEpollMutex;
+    Curl                mLocateAddressAPI;
     std::map<int, sockaddr_in> mClientMap;
 };
 

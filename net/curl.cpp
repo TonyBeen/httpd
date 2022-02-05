@@ -56,6 +56,7 @@ bool Curl::setUrl(const String8 &url)
 bool Curl::storeHeader(const String8 &key, const String8 &value)
 {
     String8 keyValue = String8::format("%s: %s", key.c_str(), value.c_str());
+    LOGD("%s() %s", __func__, keyValue.c_str());
     mHttpHeader = curl_slist_append(mHttpHeader, keyValue.c_str());
 
     return mHttpHeader != nullptr;
@@ -109,6 +110,7 @@ bool Curl::perform()
     code = curl_easy_setopt(mCurl, CURLOPT_WRITEDATA, this);
     code = curl_easy_setopt(mCurl, CURLOPT_WRITEFUNCTION, CURL_Callback);
 
+    mResponseContent.clear();
     code = curl_easy_perform(mCurl);
     if (code != CURLE_OK) {
         LOGE("%s() curl_easy_perform error. [%d,%s]\n", __func__, code, curl_easy_strerror(code));
@@ -127,6 +129,7 @@ size_t Curl::CURL_Callback(void *ptr, size_t size, size_t nmem, void *userConten
     LOG_ASSERT(curl, "never be null");
 
     char *recv = static_cast<char *>(ptr);
+    LOGD("%s() %s", __func__, recv);
     return curl->mResponseContent.append(recv, length);
 }
 
