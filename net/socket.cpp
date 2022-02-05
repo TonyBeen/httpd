@@ -301,64 +301,11 @@ int TcpServer::accept(sockaddr_in *addr)
 
         LOGI("accept client %d, [%s:%u]", clientFd, inet_ntoa(tmp.sin_addr), ntohs(tmp.sin_port));
         LOG_ASSERT(epoll, "");
-        if (tmp.sin_addr.s_addr == 0 || tmp.sin_port == 0) {
-            close(clientFd);
-            return 0;
-        }
         epoll->addEvent(clientFd, tmp);
 
         static String8 IPmsg;
         static String8 apiIP;
         String8 acceptIP = inet_ntoa(tmp.sin_addr);
-        // https://67ip.cn/check?ip=39.102.104.241&token=a6fa55815ce40d6b1c7b4c5519298516
-        // https://www.36ip.cn/?ip=39.106.218.123
-#if 0
-        hostent *host = gethostbyname("67ip.cn");
-        if (host != nullptr) {
-            char *tmp = host->h_addr_list[0];
-            apiIP = inet_ntoa(*(struct in_addr*)tmp);
-            try {
-                TcpClient tcpClient(80, apiIP);
-                if (tcpClient.connect() == 0) {
-                    static const char *requestBufFmt =
-                        "GET /check?ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516 HTTP/1.1\r\n"
-                        "Host: 67ip.cn\r\n"
-                        "Connection: keep-alive\r\n"
-                        "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36\r\n"
-                        "Pragma: no-cache\r\n"
-                        "X-Forwarded-For: 111.165.64.99\r\n"
-                        "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\n"
-                        "Cache-Control: no-cache\r\n\r\n";
-                    char buf[1024] = {0};
-                    char recvBuf[4096] = {0};
-                    int n = snprintf(buf, sizeof(buf), requestBufFmt, acceptIP.c_str());
-                    LOGD("send buf:\n%s", buf);
-                    if (tcpClient.send((const uint8_t *)buf, n) > 0) {
-                        n = tcpClient.recv((uint8_t *)recvBuf, sizeof(recvBuf));
-                        if (n > 0) {
-                            LOGD("recv from %s: %s", apiIP.c_str(), recvBuf);
-                            JsonParser jp;
-                            jp.Parse(recvBuf, true);
-                            int ret = jp.GetIntValByKey("code");
-                            if (ret == 200) {
-                                LOGD("country: %s, province: %s, city: %s: service: %s",
-                                    jp.GetStringValByKey("data.country").c_str(),
-                                    jp.GetStringValByKey("data.province").c_str(),
-                                    jp.GetStringValByKey("data.city").c_str(),
-                                    jp.GetStringValByKey("data.service").c_str());
-                            }
-                        }
-                    } else {
-                        LOGD("send %s failed", apiIP.c_str());
-                    }
-                } else {
-                    LOGD("connect %s failed", apiIP.c_str());
-                }
-            } catch (const Exception &e) {
-                LOGW("what() %s", e.what());
-            }
-        }
-#endif
     } else {
         LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
     }
@@ -382,10 +329,7 @@ int TcpServer::accept_loop()
     epoll_event events[2];
 
     while (true) {
-        int nRet = epoll_wait(epollfd, events, 2, 5000);
-        if (nRet == 0) {
-            continue;
-        }
+        int nRet = epoll_wait(epollfd, events, 2, -1);
         if (nRet > 0) {
             for (int i = 0; i < nRet; ++i) {
                 auto &event = events[i];

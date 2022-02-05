@@ -19,9 +19,10 @@ namespace eular {
 namespace api {
 
 TcpClient::TcpClient() :
-    mSocket(-1)
+    mSocket(-1),
+    mRemoteHost(INADDR_NONE)
 {
-    mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+
 }
 
 TcpClient::TcpClient(const sockaddr_in *addr) :
@@ -44,22 +45,31 @@ TcpClient::TcpClient(const String8 &host, uint16_t port) :
     mSocket(-1),
     mRemotePort(port)
 {
-    struct hostent *hostInfo = gethostbyname(host.c_str());
+    hostent *hostInfo = gethostbyname(host.c_str());
     if (hostInfo == nullptr) {
         return;
     }
 
-    mRemoteIP = hostInfo->h_addr_list[0];
-    mRemoteHost = inet_addr(mRemoteIP.c_str());
+    mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (mSocket < 0) {
+        return;
+    }
+
+    char *temp = hostInfo->h_addr_list[0];
+    mRemoteIP = inet_ntoa(*(struct in_addr*)temp);
+    mRemoteHost = ((struct in_addr*)temp)->s_addr;
+    LOGD("[%s,%u]", mRemoteIP.c_str(), mRemoteHost);
 
     sockaddr_in addr;
     memset(&addr, 0, sizeof(sockaddr_in));
     addr.sin_family = AF_INET;
     addr.sin_port = htons(mRemotePort);
-    addr.sin_addr.s_addr = mRemoteHost == INADDR_NONE ? INADDR_ANY : mRemoteHost;
+    addr.sin_addr.s_addr = mRemoteHost;
 
     if (::connect(mSocket, (const sockaddr *)&addr, sizeof(sockaddr_in)) < 0) {
-        LOGE("%s(const sockaddr_in *addr) connect error. [%d,%s]", __func__, errno, strerror(errno));
+        LOGE("%s(const String8 &host, uint16_t port) connect error. [%d,%s]", __func__, errno, strerror(errno));
+    } else {
+        LOGD("API %s[%s] connected", host.c_str(), mRemoteIP.c_str());
     }
 }
 
@@ -81,7 +91,7 @@ TcpClient::TcpClient(uint16_t port, const String8& ip) :
     addr.sin_addr.s_addr = inet_addr(ip.c_str());
 
     if (::connect(mSocket, (const sockaddr *)&addr, sizeof(sockaddr_in)) < 0) {
-        LOGE("%s(const sockaddr_in *addr) connect error. [%d,%s]", __func__, errno, strerror(errno));
+        LOGE("%s(uint16_t port, const String8& ip) connect error. [%d,%s]", __func__, errno, strerror(errno));
     }
 }
 
@@ -93,20 +103,58 @@ TcpClient::~TcpClient()
     }
 }
 
-std::shared_ptr<TcpClient> TcpClient::Create(uint16_t port, const String8 &remoteHost)
-{
-    return std::make_shared<TcpClient>(port, remoteHost);
-}
-
 void TcpClient::setPort(uint16_t port)
 {
     mRemotePort = port;
 }
 
-void TcpClient::setHost(const String8 &ip)
+void TcpClient::setHost(const String8 &host)
 {
-    mRemoteIP = ip;
-    mRemoteHost = inet_addr(ip.c_str());
+    struct hostent *hostInfo = gethostbyname(host.c_str());
+    if (hostInfo == nullptr) {
+        return;
+    }
+
+    char *temp = hostInfo->h_addr_list[0];
+    mRemoteIP = inet_ntoa(*(struct in_addr*)temp);
+    mRemoteHost = ((struct in_addr*)temp)->s_addr;
+}
+
+bool TcpClient::connect(const String8 &host, uint16_t port)
+{
+    struct hostent *hostInfo = gethostbyname(host.c_str());
+    if (hostInfo == nullptr) {
+        return false;
+    }
+
+    char *temp = hostInfo->h_addr_list[0];
+    mRemoteIP = inet_ntoa(*(struct in_addr*)temp);
+    mRemoteHost = ((struct in_addr*)temp)->s_addr;
+    mRemotePort = port;
+
+    if (mSocket > 0) {
+        close(mSocket);
+        mSocket = -1;
+    }
+
+    mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
+    if (mSocket < 0) {
+        return false;
+    }
+
+    sockaddr_in addr;
+    memset(&addr, 0, sizeof(sockaddr_in));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = mRemoteHost;
+
+    if (::connect(mSocket, (const sockaddr *)&addr, sizeof(sockaddr_in)) < 0) {
+        LOGE("%s() connect error. [%d,%s]", __func__, errno, strerror(errno));
+        return false;
+    }
+
+    LOGI("connect to [%s:%u]", mRemoteIP.c_str(), mRemotePort);
+    return true;
 }
 
 bool TcpClient::setnonblock()
@@ -148,8 +196,13 @@ int TcpClient::send(const void *buffer, uint32_t len)
     if (mSocket < 0) {
         return eular::NO_INIT;
     }
-
-    return ::send(mSocket, buffer, len, 0);
+    int ret = ::send(mSocket, buffer, len, 0);
+    if (ret < 0) {
+        LOGW("send error. [%d,%s]", errno, strerror(errno));
+        close(mSocket);
+        mSocket = -1;
+    }
+    return ret;
 }
 
 int TcpClient::send(const ByteBuffer &buffer)
@@ -158,7 +211,13 @@ int TcpClient::send(const ByteBuffer &buffer)
         return eular::NO_INIT;
     }
 
-    return ::send(mSocket, buffer.const_data(), buffer.size(), 0);
+    int ret = ::send(mSocket, buffer.const_data(), buffer.size(), 0);
+    if (ret < 0) {
+        LOGW("send error. [%d,%s]", errno, strerror(errno));
+        close(mSocket);
+        mSocket = -1;
+    }
+    return ret;
 }
 
 int TcpClient::recv(void *buffer, uint32_t bufSize)

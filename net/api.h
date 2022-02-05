@@ -35,6 +35,7 @@ public:
     virtual int recv(ByteBuffer &buffer) = 0;
 };
 
+// 如果对端断开连接需要重置mSocket
 class TcpClient : public ClientBase
 {
 public:
@@ -44,10 +45,9 @@ public:
     TcpClient(uint16_t port, const String8& ip);
     virtual ~TcpClient();
 
-    static std::shared_ptr<TcpClient> Create(uint16_t port, const String8 &remoteHost);
-
     void setPort(uint16_t port);
-    void setHost(const String8 &ip);
+    void setHost(const String8 &host);
+    bool connect(const String8 &host, uint16_t port);
 
     bool setnonblock() override;
     bool setrecvtimeout(uint32_t) override;
@@ -57,6 +57,8 @@ public:
     int send(const ByteBuffer &buffer) override;
     int recv(void *buffer, uint32_t bufSize) override;
     int recv(ByteBuffer &buffer) override;
+
+    bool connected() const { return mSocket > 0; }
 
 protected:
     int         mSocket;
