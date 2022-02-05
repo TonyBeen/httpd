@@ -4,13 +4,13 @@ log:
   sync: true
 tcp:
   port: 80
-  ip: 172.25.12.215
+  ip: 10.0.24.17
 threadpool:
   min_thread_num: 4
   max_thread_num: 8
 mysql:
   user: mysql
-  password: 123456
+  password: eular123
   database: userdb
 html:
   root: /home/hsz/VScode/www/html/
