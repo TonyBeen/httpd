@@ -167,7 +167,7 @@ int Epoll::main_loop()
                         "Host: 67ip.cn\r\n"
                         "Connection: keep-alive\r\n"
                         "User-Agent: eular/httpd v1.0\r\n"
-                        "Accept: application/json;\r\n"
+                        "Accept: application/json; */*\r\n"
                         "Pragma: no-cache\r\n"
                         "Cache-Control: no-cache\r\n\r\n";
                 String8 request = String8::format(header, it.loginIP.c_str()) + body;
