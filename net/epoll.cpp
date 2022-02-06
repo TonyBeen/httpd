@@ -155,9 +155,6 @@ int Epoll::main_loop()
         }
 
         if (nRet == 0) {
-            LOGD("%zu users had login", gUserLoginQueue.size());
-            // https://67ip.cn/check?ip=39.102.104.241&token=a6fa55815ce40d6b1c7b4c5519298516
-            // https://www.36ip.cn/?ip=39.106.218.123
             if (mLocateAddressAPI.isValid() == false) {
                 mLocateAddressAPI.setUrl("https://67ip.cn/check");
             }
@@ -168,6 +165,7 @@ int Epoll::main_loop()
                 mLocateAddressAPI.setoptVerbose(true);
                 mLocateAddressAPI.setFileds(request);
                 if (mLocateAddressAPI.perform()) {
+                    // TODO 解析http响应，根据状态码来处理数据
                     String8 response = mLocateAddressAPI.getResponse();
                     LOGD("api response: \n%s", response.c_str());
                     JsonParser jp;
@@ -183,6 +181,7 @@ int Epoll::main_loop()
                 }
             }
             gUserLoginQueue.clear();
+            continue;
         }
 
         LOGD("epoll_wait events = %d", nRet);
