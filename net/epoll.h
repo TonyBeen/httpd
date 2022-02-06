@@ -14,8 +14,8 @@
 #include "thread/threadpool.h"
 #include "http/http_parser.h"
 #include "http/http_response.h"
+#include "sql/mysql.h"
 #include <utils/mutex.h>
-#include <sqlutils/mysql.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <vector>
