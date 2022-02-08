@@ -173,7 +173,7 @@ int HttpRequestParser::parse(const String8& httpRequest)
     mParser.http_field = onRequestField;
 
     size_t ret = http_request_parser_execute(&mParser, httpRequest.c_str(), httpRequest.length(), 0);
-    LOGD("%s() http_request_parser_execute: %zu\n", ret);
+    LOGD("%s() http_request_parser_execute: %zu\n", __func__, ret);
 
     if (http_request_parser_has_error(&mParser)) {
         return UNKNOWN_ERROR;
