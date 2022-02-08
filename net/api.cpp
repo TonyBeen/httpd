@@ -27,9 +27,9 @@ TcpClient::TcpClient() :
 
 TcpClient::TcpClient(const sockaddr_in *addr) :
     mSocket(-1),
+    mRemotePort(ntohs(addr->sin_port)),
     mRemoteHost(addr->sin_addr.s_addr),
-    mRemoteIP(inet_ntoa(addr->sin_addr)),
-    mRemotePort(ntohs(addr->sin_port))
+    mRemoteIP(inet_ntoa(addr->sin_addr))
 {
     mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (mSocket < 0) {

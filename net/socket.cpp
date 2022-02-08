@@ -24,7 +24,7 @@ static uint32_t     gSizeOfEpollVec  = 0;
 std::list<String8>  gLoginUserInfo;         // 登录用户信息
 
 static std::atomic<uint32_t> gCountUdpFd = {3};
-Socket::Socket() // : Socket(TCP, IPv4, 80, "")
+Socket::Socket()
 {
     mValid = false;
 }
@@ -32,8 +32,8 @@ Socket::Socket() // : Socket(TCP, IPv4, 80, "")
 Socket::Socket(ProtocolType protocol, SockFamily family, uint16_t port, const String8 &ip) :
     mProtocolType(protocol),
     mFamily(family),
-    mPort(port),
     mIPAddr(ip),
+    mPort(port),
     mValid(false)
 {
     InitSocket();
@@ -68,6 +68,8 @@ int Socket::ResetSocket()
     default:
         break;
     }
+
+    return 0;
 }
 
 int Socket::accept(sockaddr_in *addr)
@@ -267,7 +269,7 @@ TcpServer::TcpServer(uint16_t port, const String8 &IP) :
 {
     gSizeOfEpollVec = Config::Lookup<uint32_t>("epollvec.size", 5);
 
-    for (int i = 0; i < gSizeOfEpollVec; ++i) {
+    for (uint32_t i = 0; i < gSizeOfEpollVec; ++i) {
         std::shared_ptr<Epoll> epollTmp(new Epoll());
         LOG_ASSERT(epollTmp != nullptr, "");
         std::shared_ptr<Thread> threadTmp(new Thread(std::bind(&Epoll::main_loop, epollTmp.get()), "epoll thread"));
@@ -291,7 +293,7 @@ int TcpServer::accept(sockaddr_in *addr)
     if (clientFd > 0) {
         // add to epoll
         Epoll *epoll = mEpollProcMap.begin()->second.get();
-        int min = mEpollProcMap.begin()->second->getClientCount();
+        size_t min = mEpollProcMap.begin()->second->getClientCount();
         for (auto &it : mEpollProcMap) {
             if (min > it.second->getClientCount()) {
                 min = it.second->getClientCount();
