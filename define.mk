@@ -1,6 +1,6 @@
 CC := g++
-CPP_FLAGS := -std=c++11 -Wall -g
-C_FLAGS := -std=gnu99 -Wall -g
+CPP_FLAGS := -std=c++11 -g
+C_FLAGS := -std=gnu99 -g
 
 CURRENT_PATH := $(shell pwd)
 

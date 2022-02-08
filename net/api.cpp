@@ -75,9 +75,9 @@ TcpClient::TcpClient(const String8 &host, uint16_t port) :
 
 TcpClient::TcpClient(uint16_t port, const String8& ip) :
     mSocket(-1),
-    mRemoteIP(ip),
     mRemotePort(port),
-    mRemoteHost(inet_addr(ip.c_str()))
+    mRemoteHost(inet_addr(ip.c_str())),
+    mRemoteIP(ip)
 {
     mSocket = ::socket(AF_INET, SOCK_STREAM, 0);
     if (mSocket < 0) {
