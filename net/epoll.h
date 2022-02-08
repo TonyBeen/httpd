@@ -55,7 +55,7 @@ protected:
     virtual bool Reinit();
 
     virtual void ReadEventProcess(int fd);
-    virtual bool ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &response);
+    virtual bool ProcessLogin(String8 &url, const HttpRequestParser &parser, HttpResponse &response);
     virtual void SendResponse(const HttpResponse &httpRes);
     virtual void SendFile(int fd, const String8 &responseHeader, const String8 &filePath);
     virtual void SendJson(int fd, const String8 &header, const String8 &json);

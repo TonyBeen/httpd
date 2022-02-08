@@ -241,7 +241,7 @@ void Epoll::ReadEventProcess(int fd)
         return;
     }
     LOGI("buffer: \n%s", buffer.const_data());
-    HttpParser parser(buffer);
+    HttpRequestParser parser(buffer);
     HttpMethod method = parser.getMethod();
     HttpVersion version = parser.getVersion();
     String8 url = parser.getUrl();
@@ -301,9 +301,9 @@ void Epoll::ReadEventProcess(int fd)
     }
 }
 
-bool Epoll::ProcessLogin(String8 &url, const HttpParser &parser, HttpResponse &response)
+bool Epoll::ProcessLogin(String8 &url, const HttpRequestParser &parser, HttpResponse &response)
 {
-    const HttpParser::HttpRquestMap &reqMap = parser.getRequestMap();
+    const HttpRequestParser::HttpRquestMap &reqMap = parser.getRequestMap();
     auto it = reqMap.find("username");
     String8 username, password, cond;
     int ret;

