@@ -36,6 +36,8 @@ struct LoginInfo {
         this->userName  =  info.userName;
         this->loginIP   =  info.loginIP;
         this->loginTime =  info.loginTime;
+        
+        return *this;
     }
 };
 

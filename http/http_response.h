@@ -25,7 +25,7 @@ public:
         YAML = 3,   // 响应为yaml数据
         UNKNOW
     };
-    HttpResponse(int fd) : mClientFd(fd), isLocked(false), mType(UNKNOW) {}
+    HttpResponse(int fd) : mType(UNKNOW), isLocked(false), mClientFd(fd) {}
     ~HttpResponse() {}
     HttpResponse(const HttpResponse &v) = delete;
     HttpResponse &operator=(const HttpResponse &v) = delete;
