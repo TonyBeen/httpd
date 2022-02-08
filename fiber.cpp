@@ -59,9 +59,9 @@ Fiber::Fiber() :
 }
 
 Fiber::Fiber(std::function<void()> cb, uint64_t stackSize) :
+    mState(READY),
     mFiberId(++gFiberId),
-    mCb(cb),
-    mState(READY)
+    mCb(cb)
 {
     ++gFiberCount;
 
