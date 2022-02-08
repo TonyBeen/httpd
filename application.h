@@ -16,7 +16,7 @@ class Env {
 public:
     Env();
     ~Env();
-    bool init(int argc, char **argv);
+    void init(int argc, char **argv);
 
     void add(const String8& key, const String8& val);
     bool has(const String8& key);

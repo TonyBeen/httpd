@@ -183,7 +183,7 @@ Env::~Env()
 
 }
 
-bool Env::init(int argc, char **argv)
+void Env::init(int argc, char **argv)
 {
     char link[128] = {0};
     char path[128] = {0};
