@@ -489,15 +489,16 @@ void Epoll::Send404(int fd)
     while (true) {
         memset(buf, 0, READ_BUFSIZE);
         readedSize = ::read(fileDes, buf, READ_BUFSIZE);
-        if (readedSize <= 0) {
-            if (errno != EAGAIN) {
-                LOGE("%s() read error %d, errstr: %s", __func__, errno, strerror(errno));
-            }
+        if (readedSize == 0) {
+            break;
+        }
+        if (readedSize < 0) {
+            LOGE("%s() read error [%d,%s]", __func__, errno, strerror(errno));
             break;
         }
         ret = ::send(fd, buf, readedSize, 0);
         if (ret < 0) {
-            LOGE("send error %d, errstr: %s", errno, strerror(errno));
+            LOGE("send error. [%d,%s]", errno, strerror(errno));
             break;
         }
     }
