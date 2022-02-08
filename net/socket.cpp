@@ -32,6 +32,7 @@ Socket::Socket()
 Socket::Socket(ProtocolType protocol, SockFamily family, uint16_t port, const String8 &ip) :
     mProtocolType(protocol),
     mFamily(family),
+    mSockFd(-1),
     mIPAddr(ip),
     mPort(port),
     mValid(false)
@@ -78,10 +79,10 @@ int Socket::accept(sockaddr_in *addr)
     socklen_t addrLen;
     if (mProtocolType == TCP) {
         clientFd = ::accept(mSockFd, (sockaddr *)addr, &addrLen);
-        if (clientFd > 0 && addr) {
+        if (clientFd > 0) {
             mClientFdMap[clientFd] = *addr;
         } else {
-            LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
+            LOGE("accept error. [%d,%s]", errno, strerror(errno));
         }
     } else if (mProtocolType == UDP) {
         char buf[128] = {0};
@@ -269,7 +270,7 @@ TcpServer::TcpServer(uint16_t port, const String8 &IP) :
 {
     gSizeOfEpollVec = Config::Lookup<uint32_t>("epollvec.size", 5);
 
-    for (uint32_t i = 0; i < gSizeOfEpollVec; ++i) {
+    for (int i = 0; i < gSizeOfEpollVec; ++i) {
         std::shared_ptr<Epoll> epollTmp(new Epoll());
         LOG_ASSERT(epollTmp != nullptr, "");
         std::shared_ptr<Thread> threadTmp(new Thread(std::bind(&Epoll::main_loop, epollTmp.get()), "epoll thread"));
@@ -293,7 +294,7 @@ int TcpServer::accept(sockaddr_in *addr)
     if (clientFd > 0) {
         // add to epoll
         Epoll *epoll = mEpollProcMap.begin()->second.get();
-        size_t min = mEpollProcMap.begin()->second->getClientCount();
+        int min = mEpollProcMap.begin()->second->getClientCount();
         for (auto &it : mEpollProcMap) {
             if (min > it.second->getClientCount()) {
                 min = it.second->getClientCount();
@@ -309,7 +310,7 @@ int TcpServer::accept(sockaddr_in *addr)
         static String8 apiIP;
         String8 acceptIP = inet_ntoa(tmp.sin_addr);
     } else {
-        LOGE("accept error. errno %d, errstr %s", errno, strerror(errno));
+        LOGE("accept error. [%d,%s]", errno, strerror(errno));
     }
 
     if (addr) *addr = tmp;
