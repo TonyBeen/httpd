@@ -15,79 +15,71 @@ namespace eular {
 
 void HttpRequestParser::onRequestMethod(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mMethod = String2HttpMethod(String8(at, len));
-        LOGD("%s() %s", __func__, String8(at, len).c_str());
-    }
+    requestParser->mMethod = String2HttpMethod(String8(at, len));
+    LOGD("%s() %s", __func__, String8(at, len).c_str());
 }
 
 void HttpRequestParser::onRequestVersion(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mVersion = String2HttpVersion(String8(at, len));
-        LOGD("%s() %s", __func__, String8(at, len).c_str());
-    }
+    requestParser->mVersion = String2HttpVersion(String8(at, len));
+    LOGD("%s() %s", __func__, String8(at, len).c_str());
 }
 
 void HttpRequestParser::onRequestUri(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mUri = String8(at, len);
-        LOGD("%s() %s", __func__, requestParser->mUri.c_str());
-    }
+    requestParser->mUri = String8(at, len);
+    LOGD("%s() %s", __func__, requestParser->mUri.c_str());
 }
 
 void HttpRequestParser::onRequestPath(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mPath = String8(at, len);
-        LOGD("%s() %s", __func__, requestParser->mPath.c_str());
-    }
+    requestParser->mPath = String8(at, len);
+    LOGD("%s() %s", __func__, requestParser->mPath.c_str());
 }
 
 void HttpRequestParser::onRequestFragment(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mFragment = String8(at, len);
-        LOGD("%s() %s", __func__, requestParser->mFragment.c_str());
-    }
+    requestParser->mFragment = String8(at, len);
+    LOGD("%s() %s", __func__, requestParser->mFragment.c_str());
 }
 
 // 数据在请求行会调到
 void HttpRequestParser::onRequestQuery(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mRequestData = ByteBuffer(at, len);
-        LOGD("%s() %s", __func__, requestParser->mRequestData.const_data());
-    }
+    requestParser->mRequestData = ByteBuffer(at, len);
+    LOGD("%s() %s", __func__, requestParser->mRequestData.const_data());
 }
 
 // 数据在结尾会调到
 void HttpRequestParser::onRequestHeaderDone(void *userData, const char *at, size_t len)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        requestParser->mRequestData = ByteBuffer(at, len);
-        LOGD("%s() %s", __func__, requestParser->mRequestData.const_data());
-    }
+    requestParser->mRequestData = ByteBuffer(at, len);
+    LOGD("%s() %s", __func__, requestParser->mRequestData.const_data());
 }
 
 void HttpRequestParser::onRequestField(void *userData, const char *field, size_t flen, const char *value, size_t vlen)
 {
+    LOG_ASSERT(userData, "never be null");
     HttpRequestParser *requestParser = static_cast<HttpRequestParser *>(userData);
-    if (requestParser) {
-        String8 _field = String8(field, flen);
-        String8 _value = String8(value, vlen);
-        requestParser->mHttpRequestMap.insert(std::make_pair(_field, _value));
-        // requestParser->mHttpRequestMap[_field] = _value;
-        LOGD("%s() [%s][%s]", __func__, _field.c_str(), _value.c_str());
-    }
+    String8 _field = String8(field, flen);
+    String8 _value = String8(value, vlen);
+    requestParser->mHttpRequestMap.insert(std::make_pair(_field, _value));
+    // requestParser->mHttpRequestMap[_field] = _value;
+    LOGD("%s() [%s][%s]", __func__, _field.c_str(), _value.c_str());
 }
 
 HttpRequestParser::HttpRequestParser()
@@ -239,6 +231,102 @@ bool HttpRequestParser::KeepAlive() const
         return false;
     }
     return true;
+}
+
+HttpResponseParser::HttpResponseParser()
+{
+
+}
+
+HttpResponseParser::HttpResponseParser(const ByteBuffer &buffer)
+{
+    parse(buffer);
+}
+
+HttpResponseParser::HttpResponseParser(const String8 &buffer)
+{
+    parse(buffer);
+}
+
+HttpResponseParser::~HttpResponseParser()
+{
+
+}
+
+
+int HttpResponseParser::parse(const String8& httpResponse)
+{
+    http_response_parser_init(&mParser, this);
+    mParser.http_field = onResponseField;
+    mParser.http_status = onResponseStatus;
+    mParser.http_reason = onResponseReason;
+    mParser.http_version = onResponseVersion;
+    mParser.http_data = onResponseData;
+
+    http_response_parser_execute(&mParser, httpResponse.c_str(), httpResponse.length(), 0);
+    if (http_response_parser_has_error(&mParser)) {
+        LOGE("HttpResponseParser::parse() error.");
+        return UNKNOWN_ERROR;
+    }
+
+    return OK;
+}
+
+int HttpResponseParser::parse(const ByteBuffer& httpResponse)
+{
+    parse((const char *)httpResponse.const_data());
+}
+
+String8 HttpResponseParser::getValue(const String8 &field) const
+{
+    auto it = mResponseFieldMap.find(field);
+    if (it == mResponseFieldMap.end()) {
+        return mNULL;
+    }
+
+    return it->second;
+}
+
+void HttpResponseParser::onResponseVersion(void *userData, const char *at, size_t len)
+{
+    LOG_ASSERT(userData, "never be null");
+    HttpResponseParser *parse = static_cast<HttpResponseParser *>(userData);
+    parse->mVersion = String2HttpVersion(String8(at, len));
+    LOGD("%s() %s", __func__, String8(at, len).c_str());
+}
+
+void HttpResponseParser::onResponseStatus(void *userData, const char *at, size_t len)
+{
+    LOG_ASSERT(userData, "never be null");
+    HttpResponseParser *parse = static_cast<HttpResponseParser *>(userData);
+    parse->mStatus = (HttpStatus)atoi(String8(at, len).c_str());
+    LOGD("%s() %s", __func__, String8(at, len).c_str());
+}
+
+void HttpResponseParser::onResponseReason(void *userData, const char *at, size_t len)
+{
+    LOG_ASSERT(userData, "never be null");
+    HttpResponseParser *parse = static_cast<HttpResponseParser *>(userData);
+    parse->mReason = String8(at, len);
+    LOGD("%s() %s", __func__, String8(at, len).c_str());
+}
+
+void HttpResponseParser::onResponseData(void *userData, const char *at, size_t len)
+{
+    LOG_ASSERT(userData, "never be null");
+    HttpResponseParser *parse = static_cast<HttpResponseParser *>(userData);
+    parse->mResponseData = String8(at, len);
+    LOGD("%s() %s", __func__, String8(at, len).c_str());
+}
+
+void HttpResponseParser::onResponseField(void *userData, const char *field, size_t flen, const char *value, size_t vlen)
+{
+    LOG_ASSERT(userData, "never be null");
+    HttpResponseParser *parse = static_cast<HttpResponseParser *>(userData);
+    String8 _field = String8(field, flen);
+    String8 _value = String8(value, vlen);
+    parse->mResponseFieldMap.insert(std::make_pair(_field, _value));
+    LOGD("%s() [%s][%s]", __func__, _field.c_str(), _value.c_str());
 }
 
 } // namespace eular

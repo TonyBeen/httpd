@@ -162,21 +162,23 @@ int Epoll::main_loop()
             for (const auto &it : gUserLoginQueue) {
                 static const char *requestFmt = "ip=%s&token=a6fa55815ce40d6b1c7b4c5519298516";
                 String8 request = String8::format(requestFmt, it.loginIP.c_str());
-                mLocateAddressAPI.setoptVerbose(true);
                 mLocateAddressAPI.setFileds(request);
                 if (mLocateAddressAPI.perform()) {
                     // TODO 解析http响应，根据状态码来处理数据
                     String8 response = mLocateAddressAPI.getResponse();
                     LOGD("api response: \n%s", response.c_str());
-                    JsonParser jp;
-                    jp.Parse(response.c_str(), true);
-                    int ret = jp.GetIntValByKey("code");
-                    if (ret == 200) {
-                        LOGD("country: %s, province: %s, city: %s: service: %s",
-                            jp.GetStringValByKey("data.country").c_str(),
-                            jp.GetStringValByKey("data.province").c_str(),
-                            jp.GetStringValByKey("data.city").c_str(),
-                            jp.GetStringValByKey("data.service").c_str());
+                    HttpResponseParser responseParser(response);
+                    if (responseParser.getStatus() == HttpStatus::OK) {
+                        JsonParser jp;
+                        jp.Parse(responseParser.getResponseData().c_str());
+                        int ret = jp.GetIntValByKey("code");
+                        if (ret == 200) {
+                            LOGD("country: %s, province: %s, city: %s: service: %s",
+                                jp.GetStringValByKey("data.country").c_str(),
+                                jp.GetStringValByKey("data.province").c_str(),
+                                jp.GetStringValByKey("data.city").c_str(),
+                                jp.GetStringValByKey("data.service").c_str());
+                        }
                     }
                 }
             }

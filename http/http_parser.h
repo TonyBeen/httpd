@@ -61,6 +61,44 @@ private:
     http_request_parser mParser;
 };
 
+class HttpResponseParser
+{
+public:
+    typedef std::map<String8, String8> HttpResponseMap;
+
+    HttpResponseParser();
+    HttpResponseParser(const ByteBuffer &buffer);
+    HttpResponseParser(const String8 &buffer);
+    ~HttpResponseParser();
+
+    int   parse(const String8& httpResponse);
+    int   parse(const ByteBuffer& httpResponse);
+
+    HttpVersion     getVersion() const { return mVersion; }
+    HttpStatus      getStatus() const { return mStatus; }
+    const String8  &getReason() const { return mReason; }
+    String8         getValue(const String8 &field) const;
+    const String8  &getResponseData() const { return mResponseData; }
+
+protected:
+    static void onResponseVersion(void *userData, const char *at, size_t len);
+    static void onResponseStatus(void *userData, const char *at, size_t len);
+    static void onResponseReason(void *userData, const char *at, size_t len);
+    static void onResponseData(void *userData, const char *at, size_t len);
+    static void onResponseField(void *userData, const char *field, size_t flen, const char *value, size_t vlen);
+
+protected:
+    HttpVersion mVersion;
+    HttpStatus  mStatus;
+    String8     mReason;
+    String8     mResponseData;
+
+    HttpResponseMap         mResponseFieldMap;
+    http_response_parser    mParser;
+
+    String8     mNULL;
+};
+
 } // namespace eular
 
 #endif // __HTTP_PASER_H__
