@@ -14,7 +14,6 @@ COBJ := $(patsubst %.c, %.o, $(CSRC))
 
 httpd : $(CPPOBJ)
 	$(CC) $^ -o $@ $(STATIC_LIB) $(SHARED_LIB)
-	-rm -rf $(CPPOBJ)
 
 %.o : %.cpp
 	$(CC) $^ -c -o $@ $(CPP_FLAGS) $(INCLUDE)

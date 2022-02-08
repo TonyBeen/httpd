@@ -176,6 +176,7 @@ int HttpRequestParser::parse(const String8& httpRequest)
     LOGD("%s() http_request_parser_execute: %zu\n", __func__, ret);
 
     if (http_request_parser_has_error(&mParser)) {
+        LOGD("%s() request parser has error", __func__);
         return UNKNOWN_ERROR;
     }
 
