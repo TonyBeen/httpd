@@ -44,9 +44,6 @@ public:
     String8 dump() const;
     bool KeepFile(const String8 &path) const;
 
-protected:
-    cJSON *CopyJson(const cJSON *other);
-
 private:
     std::map<String8, int>      mIntegerMap;    // 整型
     std::map<String8, String8>  mStringMap;     // 字符串
@@ -62,15 +59,16 @@ struct JsonMeta {
     JsonMeta &operator=(const JsonMeta &jm)
     {
         this->jsonObj = jm.jsonObj;
+        return *this;
     }
 
-    bool isString() { cJSON_IsString(jsonObj); }
-    bool isNumber() { cJSON_IsNumber(jsonObj); }
-    bool isArray() { cJSON_IsArray(jsonObj); }
+    bool isString() { return cJSON_IsString(jsonObj); }
+    bool isNumber() { return cJSON_IsNumber(jsonObj); }
+    bool isArray() { return cJSON_IsArray(jsonObj); }
 
-    String8 getString() { cJSON_GetStringValue(jsonObj); }
-    int getInt()        { (int)cJSON_GetNumberValue(jsonObj); }
-    double getFloat()   { cJSON_GetNumberValue(jsonObj); }
+    String8 getString() { return cJSON_GetStringValue(jsonObj); }
+    int getInt()        { return (int)cJSON_GetNumberValue(jsonObj); }
+    double getFloat()   { return cJSON_GetNumberValue(jsonObj); }
 
     cJSON *jsonObj;
 };

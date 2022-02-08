@@ -64,6 +64,7 @@ protected:
         {
             fiber = fc.fiber;
             cb = fc.cb;
+            return *this;
         }
         void reset() {
             fiber = nullptr;

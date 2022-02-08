@@ -44,6 +44,8 @@ JsonGenerator &JsonGenerator::operator=(const JsonGenerator &json)
     this->mStringMap = json.mStringMap;
     this->mIntegerMap = json.mIntegerMap;
     this->mDoubleMap = json.mDoubleMap;
+
+    return *this;
 }
 
 bool JsonGenerator::AddNode(const String8 &key, const String8 &val)
@@ -191,11 +193,6 @@ error:
         close(fd);
     }
     return false;
-}
-
-cJSON *JsonGenerator::CopyJson(const cJSON *other)
-{
-
 }
 
 JsonParser::JsonParser()
