@@ -91,7 +91,8 @@ public:
 
     std::vector<JsonMeta> GetValVecByKey(const String8 &key);
     String8 GetStringValByKey(const String8 &key);
-    int GetIntValByKey(const String8 &key);
+    int     GetIntValByKey(const String8 &key);
+    double  GetDouble(const String8 &key);
 
 private:
     void Parse(String8 perfix, cJSON *node);

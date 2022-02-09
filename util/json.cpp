@@ -278,6 +278,16 @@ int JsonParser::GetIntValByKey(const String8 &key)
     return INT32_MIN;
 }
 
+double JsonParser::GetDouble(const String8 &key)
+{
+    auto it = mJsonMap.find(key);
+    if (it != mJsonMap.end() && cJSON_IsNumber(it->second)) {
+        return it->second->valuedouble;
+    }
+
+    return (double)INT32_MIN;
+}
+
 /**
  * @brief 解析json
  * 
