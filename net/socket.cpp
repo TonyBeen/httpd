@@ -287,8 +287,8 @@ TcpServer::~TcpServer()
 
 int TcpServer::accept(sockaddr_in *addr)
 {
-    socklen_t addrLen;
     sockaddr_in tmp;
+    socklen_t addrLen = sizeof(sockaddr_in);
 
     int clientFd = ::accept(mSockFd, (sockaddr *)&tmp, &addrLen);
     if (clientFd > 0) {
@@ -317,7 +317,6 @@ int TcpServer::accept(sockaddr_in *addr)
     return clientFd;
 }
 
-// TODO: 第一次请求会接收一个全为0的IP
 int TcpServer::accept_loop()
 {
     epoll_event ev;
