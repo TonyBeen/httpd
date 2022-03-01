@@ -165,7 +165,7 @@ int ThreadPool::worker()
 {
     LOGD("worker() start");
     gMainFiber = Fiber::GetThis().get(); // 每个线程的主协程
-    //Fiber::sp idleFiber(new Fiber(mIdle));
+    //Fiber::SP idleFiber(new Fiber(mIdle));
 
     while (ShouldStop() == false) {
         while (QueueSize() == 0) {    // 队列为空时线程等待

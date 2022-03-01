@@ -49,11 +49,11 @@ protected:
     bool ShouldStop();
 
     struct FiberOrCallBack {
-        Fiber::sp fiber;
+        Fiber::SP fiber;
         std::function<void()> cb;
 
         FiberOrCallBack() : fiber(nullptr), cb(nullptr) { }
-        FiberOrCallBack(Fiber::sp p) : fiber(p), cb(nullptr) { }
+        FiberOrCallBack(Fiber::SP p) : fiber(p), cb(nullptr) { }
         FiberOrCallBack(std::function<void()> p) : fiber(nullptr), cb(p) { }
         FiberOrCallBack(const FiberOrCallBack& fc)
         {
