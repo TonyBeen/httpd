@@ -19,8 +19,8 @@ void test_fiber()
 int thread_func(void *)
 {
     LOGD("thread %ld start", gettid());
-    Fiber::sp ptr = Fiber::GetThis();
-    Fiber::sp fiber(new Fiber(test_fiber));
+    Fiber::SP ptr = Fiber::GetThis();
+    Fiber::SP fiber(new Fiber(test_fiber));
     LOG_ASSERT(fiber, "");
     LOGD("resume");
     fiber->Resume();
