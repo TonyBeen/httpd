@@ -35,7 +35,7 @@ public:
            void         Reset(std::function<void()> cb);
     static void         SetThis(Fiber *f);  // 设置当前正在执行的协程
     static Fiber::SP    GetThis();          // 获取当前正在执行的协程
-           void         Resume();           // 唤醒协程
+           void         resume();           // 唤醒协程
     static void         Yeild2Hold();       // 将当前正在执行的协程让出执行权给主协程，并设置状态为HOLD
     static void         Yeild2Ready();      // 将当前正在执行的协程让出执行权给主协程，并设置状态为READY
     FiberState          getState();         // 获取执行状态

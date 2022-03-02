@@ -23,12 +23,12 @@ int thread_func(void *)
     Fiber::SP fiber(new Fiber(test_fiber));
     LOG_ASSERT(fiber, "");
     LOGD("resume");
-    fiber->Resume();
+    fiber->resume();
     LOGD("thread after swapin");
 
-    fiber->Resume();
+    fiber->resume();
     LOGD("thread after swapin 2");
-    fiber->Resume();
+    fiber->resume();
     LOGD("thread stop");
     LOGD("refer count %d\n", fiber.use_count());
 

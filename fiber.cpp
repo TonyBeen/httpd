@@ -152,7 +152,7 @@ Fiber::SP Fiber::GetThis()
     return gCurrFiber->shared_from_this();
 }
 
-void Fiber::Resume()
+void Fiber::resume()
 {
     SwapIn();
 }
