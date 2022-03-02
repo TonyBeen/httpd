@@ -186,7 +186,7 @@ int ThreadPool::worker()
         }
         ++mBusyNum;
         if (fc.fiber) {
-            fc.fiber->Resume();
+            fc.fiber->resume();
         } else if (fc.cb) {
             fc.cb();
         }
