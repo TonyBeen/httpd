@@ -1,6 +1,5 @@
 httpd
 config
 config/config.yaml
-.gitignore
 
 *.[oa]
