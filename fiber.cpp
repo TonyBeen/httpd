@@ -100,7 +100,7 @@ void Fiber::Reset(std::function<void()> cb)
 {
     LOG_ASSERT(mStack, "main fiber can't reset"); // 排除main fiber
     // 暂停态，执行态，ready态无法reset
-    LOG_ASSERT(mState == TERM || mState == EXCEPT, "Reset unauthorized operation");
+    LOG_ASSERT(mState == TERM || mState == EXCEPT || mState == READY, "Reset unauthorized operation");
     mCb = cb;
     if (getcontext(&mCtx)) {
         LOG_ASSERT(false, "File %s, Line %s. getcontex error.", __FILE__, __LINE__);
