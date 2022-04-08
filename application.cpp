@@ -75,7 +75,7 @@ int Application::init(int argc, char **argv)
         addOutputNode(LogWrite::FILEOUT);
     }
     if (consoleOut) {
-        addOutputNode(LogWrite::CONSLOEOUT);
+        addOutputNode(LogWrite::CONSOLEOUT);
     }
     if (stdOut == false) {
         delOutputNode(LogWrite::STDOUT);
