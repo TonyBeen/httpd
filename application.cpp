@@ -70,7 +70,7 @@ int Application::init(int argc, char **argv)
     bool stdOut = target.contains("stdout");
     bool fileOut = target.contains("fileout");
     bool consoleOut = target.contains("consoleout");
-    InitLog(lev, sync);
+    InitLog(lev);
     if (fileOut) {
         addOutputNode(LogWrite::FILEOUT);
     }
