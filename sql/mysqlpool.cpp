@@ -94,17 +94,19 @@ MySqlConn *MysqlPool::GetAConnection()
 void MysqlPool::FreeAConnection(MySqlConn *conn)
 {
     LOGD("%s()", __func__);
-    if (mNeedFree.load() && mSqlLeftNum.load() != mMysqlConnNum) {
-        mFreeSignal.post();
+    {
+        AutoLock<Mutex> lock(mSqlMutex);
+        for (auto &it : mMysqlPool) {
+            if (it.first == conn) {
+                LOGD("%s() find ptr: %p\n", __func__, conn);
+                it.second = true;
+                ++mSqlLeftNum;
+            }
+        }
     }
 
-    AutoLock<Mutex> lock(mSqlMutex);
-    for (auto &it : mMysqlPool) {
-        if (it.first == conn) {
-            LOGD("%s() find ptr: %p\n", __func__, conn);
-            it.second = true;
-            ++mSqlLeftNum;
-        }
+    if (mNeedFree.load() && mSqlLeftNum.load() == mMysqlConnNum) {
+        mFreeSignal.post();
     }
 }
 
