@@ -186,6 +186,7 @@ bool JsonGenerator::KeepFile(const String8 &path) const
     }
     writeSize = write(fd, json, strlen(json));
     cJSON_free(json);
+    close(fd);
     return (writeSize > 0);
 
 error:

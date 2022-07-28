@@ -87,6 +87,7 @@ int main(int argc, char **argv)
     cout << "****************************\n";
     cout << jgTemp.dump() << endl;
     cout << "****************************\n";
+    jgTemp.KeepFile("jsontest.json");
 
     /*
     {
