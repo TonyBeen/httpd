@@ -10,7 +10,7 @@
 
 #include "http.h"
 #include <http_parser/http_parser.h>
-#include <utils/Buffer.h>
+#include <utils/buffer.h>
 #include <utils/string8.h>
 #include <map>
 #include <memory>

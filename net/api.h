@@ -8,7 +8,7 @@
 #ifndef __NET_API_H__
 #define __NET_API_H__
 
-#include <utils/Buffer.h>
+#include <utils/buffer.h>
 #include <utils/string8.h>
 #include <stdint.h>
 #include <sys/socket.h>
