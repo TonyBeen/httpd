@@ -9,6 +9,7 @@
 #include "config.h"
 #include "net/socket.h"
 #include <log/log.h>
+#include <log/callstack.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -56,7 +57,10 @@ int Application::init(int argc, char **argv)
         mRunAsDaemons = true;
     }
 
+    LOGD("init config begin");
+
     Config cfg(mConfigPath);
+    LOGD("init config end");
     if (cfg.isVaild() == false) {
         env.printHelp();
         LOGE("%s", cfg.getErrorMsg().c_str());
@@ -65,7 +69,7 @@ int Application::init(int argc, char **argv)
     String8 level = cfg.Lookup<const char *>("log.level", "debug");
     LogLevel::Level lev = LogLevel::String2Level(level.c_str());
     bool sync = cfg.Lookup<bool>("log.sync", true);
-    root = cfg.Lookup<const char *>("html.root", "/home/hsz/VScode/www/html/");
+    root = cfg.Lookup<const char *>("html.root", "/home/eular/vscode/www/html/");
     String8 target = cfg.Lookup<const char *>("log.target", "stdout");
     bool stdOut = target.contains("stdout");
     bool fileOut = target.contains("fileout");
@@ -106,7 +110,18 @@ void Signalcatch(int sig)
     LOGI("catch signal %d", sig);
     if (sig == SIGSEGV) {
         // 产生堆栈信息;
-        LOG_ASSERT(false, "");
+        CallStack stack;
+        stack.update();
+        stack.log("SIGSEGV", LogLevel::FATAL);
+        exit(0);
+    }
+
+    if (sig == SIGABRT) {
+        // 产生堆栈信息;
+        CallStack stack;
+        stack.update();
+        stack.log("SIGABRT", LogLevel::FATAL);
+        exit(0);
     }
 
     if (sig == SIGUSR1) {
