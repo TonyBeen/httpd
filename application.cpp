@@ -57,10 +57,7 @@ int Application::init(int argc, char **argv)
         mRunAsDaemons = true;
     }
 
-    LOGD("init config begin");
-
     Config cfg(mConfigPath);
-    LOGD("init config end");
     if (cfg.isVaild() == false) {
         env.printHelp();
         LOGE("%s", cfg.getErrorMsg().c_str());
