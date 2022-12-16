@@ -221,7 +221,7 @@ bool HttpRequestParser::KeepAlive() const
 {
     auto it = mHttpRequestMap.find("Connection");
     if (it == mHttpRequestMap.end()) {
-        if (mVersion > HttpVersion::HTTPV11) {
+        if (mVersion >= HttpVersion::HTTPV11) {
             return true;
         }
         return false;

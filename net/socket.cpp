@@ -38,15 +38,19 @@ Socket::Socket(ProtocolType protocol, SockFamily family, uint16_t port, const St
     mValid(false)
 {
     InitSocket();
-    switch (mProtocolType) {
-    case TCP:
-        CreateTCP();
-        break;
-    case UDP:
-        CreateTCP();
-        break;
-    default:
-        break;
+    try {
+        switch (mProtocolType) {
+        case TCP:
+            CreateTCP();
+            break;
+        case UDP:
+            CreateTCP();
+            break;
+        default:
+            break;
+        }
+    } catch (const Exception &e) {
+        LOGE("%s", e.what());
     }
 }
 
@@ -59,15 +63,19 @@ int Socket::ResetSocket()
 {
     destroy();
     InitSocket();
-    switch (mProtocolType) {
-    case TCP:
-        CreateTCP();
-        break;
-    case UDP:
-        CreateTCP();
-        break;
-    default:
-        break;
+    try {
+        switch (mProtocolType) {
+        case TCP:
+            CreateTCP();
+            break;
+        case UDP:
+            CreateTCP();
+            break;
+        default:
+            break;
+        }
+    } catch (const Exception &e) {
+        LOGE("%s", e.what());
     }
 
     return 0;
@@ -305,10 +313,6 @@ int TcpServer::accept(sockaddr_in *addr)
         LOGI("accept client %d, [%s:%u]", clientFd, inet_ntoa(tmp.sin_addr), ntohs(tmp.sin_port));
         LOG_ASSERT(epoll, "");
         epoll->addEvent(clientFd, tmp);
-
-        static String8 IPmsg;
-        static String8 apiIP;
-        String8 acceptIP = inet_ntoa(tmp.sin_addr);
     } else {
         LOGE("accept error. [%d,%s]", errno, strerror(errno));
     }
@@ -345,6 +349,7 @@ int TcpServer::accept_loop()
         }
     }
 
+    epoll_ctl(epollfd, EPOLL_CTL_DEL, mSockFd, nullptr);
     close(epollfd);
     LOGD("%s() end", __func__);
     return Thread::THREAD_WAITING;
