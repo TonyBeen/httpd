@@ -265,6 +265,12 @@ void Epoll::ReadEventProcess(int fd)
             response.setFilePath(root + gIndexHtml);
             response.setHttpStatus(HttpStatus::OK);
             SendResponse(response);
+            auto it = mClientMap.find(fd);
+            LOG_ASSERT(it != mClientMap.end(), "fd must exist in client map");
+            LoginInfo info;
+            info.fd = fd;
+            info.loginIP = inet_ntoa(it->second.sin_addr);
+            gUserLoginQueue.push_back(info);
             break;
         }
 

@@ -109,7 +109,7 @@ void Signalcatch(int sig)
         // 产生堆栈信息;
         CallStack stack;
         stack.update();
-        stack.log("SIGSEGV", LogLevel::FATAL);
+        stack.log("SIGSEGV", LogLevel::LEVEL_FATAL);
         exit(0);
     }
 
@@ -117,7 +117,7 @@ void Signalcatch(int sig)
         // 产生堆栈信息;
         CallStack stack;
         stack.update();
-        stack.log("SIGABRT", LogLevel::FATAL);
+        stack.log("SIGABRT", LogLevel::LEVEL_FATAL);
         exit(0);
     }
 

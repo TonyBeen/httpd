@@ -86,8 +86,10 @@ void HttpResponse::setFilePath(const String8 &fp)
     mWillSendFilePath = fp;
     int dotIdx = fp.find('.');
     const String8 &fileExten = String8(fp.c_str() + dotIdx + 1);
-    mHttpResBody.emplace(std::make_pair("Content-Type", String8::format("%s", GetContentTypeByFileExten(fileExten).c_str())));
-    mHttpResBody.emplace(std::make_pair("Content-Length", String8::format("%d", GetFileLength(mWillSendFilePath))));
+    mHttpResBody.emplace(std::make_pair("Content-Type", GetContentTypeByFileExten(fileExten)));
+    char length[128] = {0};
+    snprintf(length, sizeof(length), "%d", GetFileLength(mWillSendFilePath));
+    mHttpResBody.emplace(std::make_pair("Content-Length", length));
     mType = ResponseType::FILE;
 }
 

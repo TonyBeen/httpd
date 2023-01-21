@@ -343,7 +343,7 @@ int TcpServer::accept_loop()
                     int fd = this->accept(nullptr);
                 }
             }
-        } else if (errno != EAGAIN) {
+        } else if (errno != EAGAIN || errno != EINTR) {
             LOGE("%s() epoll_wait error. %d: %s", __FUNCTION__, errno, strerror(errno));
             break;
         }
