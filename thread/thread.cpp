@@ -7,7 +7,7 @@
 
 #include "thread.h"
 #include <log/log.h>
-#include <utils/Errors.h>
+#include <utils/errors.h>
 
 #define LOG_TAG "thread"
 

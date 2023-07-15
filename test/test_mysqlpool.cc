@@ -6,7 +6,7 @@
  ************************************************************************/
 
 #include "sql/mysqlpool.h"
-#include <utils/Errors.h>
+#include <utils/errors.h>
 #include <utils/thread.h>
 #include <log/log.h>
 #include <assert.h>

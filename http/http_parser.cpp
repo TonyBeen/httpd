@@ -7,7 +7,7 @@
 
 #include "http_parser.h"
 #include <log/log.h>
-#include <utils/Errors.h>
+#include <utils/errors.h>
 
 #define LOG_TAG "HttpPaser"
 
@@ -274,7 +274,7 @@ int HttpResponseParser::parse(const String8& httpResponse)
 
 int HttpResponseParser::parse(const ByteBuffer& httpResponse)
 {
-    parse((const char *)httpResponse.const_data());
+    parse(String8((const char *)httpResponse.const_data()));
 }
 
 String8 HttpResponseParser::getValue(const String8 &field) const

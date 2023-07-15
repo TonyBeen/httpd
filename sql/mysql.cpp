@@ -9,7 +9,7 @@
 #include "mysql.h"
 #include "utils/debug.h"
 #include <log/log.h>
-#include <utils/Errors.h>
+#include <utils/errors.h>
 #include <utils/utils.h>
 
 #define LOG_TAG "mysql"

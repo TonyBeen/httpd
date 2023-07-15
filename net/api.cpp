@@ -7,7 +7,7 @@
 
 #include "api.h"
 #include <log/log.h>
-#include <utils/Errors.h>
+#include <utils/errors.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>

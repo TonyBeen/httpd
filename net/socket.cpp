@@ -9,7 +9,7 @@
 #include "config.h"
 #include "util/json.h"
 #include <log/log.h>
-#include <utils/Errors.h>
+#include <utils/errors.h>
 #include <utils/exception.h>
 #include <fcntl.h>
 #include <atomic>
