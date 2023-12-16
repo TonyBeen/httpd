@@ -71,15 +71,16 @@ int Application::init(int argc, char **argv)
     bool stdOut = target.contains("stdout");
     bool fileOut = target.contains("fileout");
     bool consoleOut = target.contains("consoleout");
-    InitLog(lev);
+    log::InitLog(lev);
+    log::SetPath("/home/eular/log/");
     if (fileOut) {
-        addOutputNode(LogWrite::FILEOUT);
+        log::addOutputNode(LogWrite::FILEOUT);
     }
     if (consoleOut) {
-        addOutputNode(LogWrite::CONSOLEOUT);
+        log::addOutputNode(LogWrite::CONSOLEOUT);
     }
     if (stdOut == false) {
-        delOutputNode(LogWrite::STDOUT);
+        log::delOutputNode(LogWrite::STDOUT);
     }
 
     gPort = Config::Lookup<uint32_t>("tcp.port", 80);
