@@ -8,6 +8,7 @@
 #include "application.h"
 #include "config.h"
 #include "net/socket.h"
+#include "utils/errors.h"
 #include <log/log.h>
 #include <log/callstack.h>
 #include <unistd.h>
@@ -88,7 +89,7 @@ int Application::init(int argc, char **argv)
     LOGI("load config file over");
     LOGI("log level = %s; log target = %s; log sync = %s",
         level.c_str(), target.c_str(), sync ? "true" : "false");
-    return OK;
+    return Status::OK;
 }
 
 int Application::run()
